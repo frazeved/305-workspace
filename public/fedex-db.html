@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>305 Workspace — FedEx Delivery Dashboard</title>
+  <title>305 Workspace — FedEx Delivery</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
@@ -33,63 +33,56 @@
     .mode-bar a { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
     .mode-bar a:hover { color: #fff; }
 
-    .page-wrap { flex: 1; padding: 16px 24px 40px; max-width: 1400px; margin: 0 auto; width: 100%; }
+    .page-wrap { flex: 1; padding: 16px 24px 40px; width: 100%; }
 
-    /* TOOLBAR */
-    .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+    .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
     .status-text { font-size: 12px; color: var(--muted); flex: 1; }
-    .tb-btn { display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 7px 14px; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; color: var(--accent); }
+    .tb-btn { display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 7px 14px; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; color: var(--accent); white-space: nowrap; }
     .tb-btn:hover { background: var(--accent-lt); }
+    .tb-btn:disabled { opacity: 0.6; cursor: not-allowed; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .tb-btn.loading svg { animation: spin 0.8s linear infinite; }
 
-    /* STATUS PILLS */
-    .pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+    .pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
     .pill { display: flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--surface); font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s; color: var(--muted); white-space: nowrap; }
-    .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-    .pill.all      { color: var(--text); }
-    .pill.delivered { color: var(--green); }
-    .pill.transit  { color: var(--blue); }
-    .pill.out      { color: var(--teal); }
-    .pill.exception { color: var(--red); }
-    .pill.pending  { color: var(--muted); }
+    .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+    .pill.active { border-color: currentColor; background: currentColor; }
+    .pill.active span { color: #fff; }
     .pill.notrk    { color: var(--red); }
-    .pill.active { background: currentColor; border-color: currentColor; }
-    .pill.active span { color: #fff !important; }
+    .pill.delivered { color: var(--green); }
+    .pill.transit   { color: var(--blue); }
+    .pill.out       { color: var(--teal); }
+    .pill.exception { color: var(--red); }
+    .pill.pending   { color: var(--muted); }
 
-    /* TABLE */
     .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
-    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; max-height: calc(100vh - 230px); overflow-y: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 680px; }
-    thead th { background: #1e1b4b; color: #fff; padding: 10px 14px; text-align: left; font-size: 10px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; white-space: nowrap; border-right: 1px solid rgba(255,255,255,0.08); position: sticky; top: 0; z-index: 2; }
+    thead th { background: #1e1b4b; color: #fff; padding: 10px 14px; text-align: left; font-size: 10px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; white-space: nowrap; position: sticky; top: 0; z-index: 2; border-right: 1px solid rgba(255,255,255,0.08); }
     thead th:last-child { border-right: none; }
-
     tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
     tbody tr:last-child { border-bottom: none; }
     tbody tr:nth-child(even) { background: #faf9ff; }
     tbody tr:hover { background: #f3f0ff; }
     tbody tr.hidden { display: none; }
-    tbody td { padding: 10px 14px; vertical-align: middle; white-space: nowrap; border-right: 1px solid var(--border); }
+    tbody td { padding: 9px 14px; vertical-align: middle; white-space: nowrap; border-right: 1px solid #f0eeff; }
     tbody td:last-child { border-right: none; }
 
-    .td-style { font-weight: 700; font-size: 12px; }
-    .td-po    { font-size: 11px; color: var(--muted); font-weight: 500; }
-    .td-date  { font-size: 11px; font-weight: 500; }
-    .td-date.red { color: var(--red); font-weight: 700; }
+    .td-style { font-weight: 700; }
+    .td-muted { color: var(--muted); font-size: 11px; }
+    .td-red   { color: var(--red); font-weight: 700; }
 
-    .trk-link { color: var(--accent); text-decoration: none; font-weight: 600; font-size: 11px; display: inline-flex; align-items: center; gap: 4px; }
+    .trk-link { color: var(--accent); text-decoration: none; font-weight: 600; font-size: 11px; display: inline-flex; align-items: center; gap: 3px; }
     .trk-link:hover { text-decoration: underline; }
 
-    /* STATUS BADGE */
-    .sbadge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: 700; white-space: nowrap; }
-    .sbadge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-    .sbadge.delivered { background: var(--green-lt);  color: #166534; }
-    .sbadge.transit   { background: var(--blue-lt);   color: #155e75; }
-    .sbadge.out       { background: var(--teal-lt);   color: #134e4a; }
-    .sbadge.exception { background: var(--red-lt);    color: #991b1b; }
-    .sbadge.pending   { background: #f3f4f6;          color: var(--muted); }
-    .sbadge.notrk     { background: var(--red-lt);    color: var(--red); }
+    .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+    .badge.delivered { background: var(--green-lt);  color: #166534; }
+    .badge.transit   { background: var(--blue-lt);   color: #155e75; }
+    .badge.out       { background: var(--teal-lt);   color: #134e4a; }
+    .badge.exception { background: var(--red-lt);    color: #991b1b; }
+    .badge.pending   { background: #f3f4f6;           color: var(--muted); }
+    .badge.notrk     { background: var(--red-lt);    color: var(--red); }
 
     .msg-box { padding: 60px 24px; text-align: center; color: var(--muted); font-size: 13px; }
     .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 12px; }
@@ -106,8 +99,6 @@
       .pills { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
       .pills::-webkit-scrollbar { display: none; }
       .pill { flex-shrink: 0; }
-      thead th { padding: 8px 10px; font-size: 9px; }
-      tbody td { padding: 9px 10px; }
     }
   </style>
 </head>
@@ -134,7 +125,7 @@
 </nav>
 
 <div class="mode-bar">
-  <span>FedEx Delivery Dashboard</span>
+  <span>FedEx Delivery</span>
   <a href="warehouse.html">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
     Back
@@ -159,181 +150,171 @@
   <div class="table-card">
     <div class="table-scroll">
       <div id="table-area">
-        <div class="msg-box"><div class="spinner"></div>Fetching data…</div>
+        <div class="msg-box"><div class="spinner"></div>Loading…</div>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-const SHEET_ID = '1y0iL7PJldbVQmPIAnJi9wvA2hvjB8_aK2bU2kxvUf5Q';
-const CSV_URL  = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=99866922`;
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/1y0iL7PJldbVQmPIAnJi9wvA2hvjB8_aK2bU2kxvUf5Q/gviz/tq?tqx=out:csv&gid=99866922';
 
 let activeFilter = 'all';
 
-async function runJhonny() {
-  const btn = document.getElementById('jhonny-btn');
-  btn.classList.add('loading');
-  btn.disabled = true;
-  btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Running…`;
-  try {
-    const r = await fetch('/api/run-jhonny', { method: 'POST' });
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.error || 'Failed');
-    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Started!`;
-    setTimeout(() => {
-      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Run Jhonny`;
-      btn.disabled = false;
-      btn.classList.remove('loading');
-    }, 3000);
-  } catch(e) {
-    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Run Jhonny`;
-    btn.disabled = false;
-    btn.classList.remove('loading');
-    alert('Error: ' + e.message);
-  }
+function esc(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function findCol(headers, ...keywords) {
+  return headers.findIndex(h => keywords.some(k => h.trim().toLowerCase() === k.toLowerCase()));
 }
 
-function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function col(H,...kws) { return H.findIndex(h => kws.some(k => h.toLowerCase().includes(k.toLowerCase()))); }
-function parseDate(s)  { const d = new Date(s); return isNaN(d) ? null : d; }
-function fmt(s)        { const d = parseDate(s); return d ? d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}) : (s||'—'); }
-function isPast(s)     { const d = parseDate(s); return d && d < new Date(); }
-function withinDays(s,n){ const d = parseDate(s); return d && (d - new Date()) / 86400000 <= n; }
+function parseDate(s) { const d = new Date(s); return isNaN(d) ? null : d; }
+
+function fmtDate(s) {
+  const d = parseDate(s);
+  return d ? d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'2-digit' }) : (s || '—');
+}
+
+function withinDays(s, n) {
+  const d = parseDate(s);
+  return d && (d - new Date()) / 86400000 <= n;
+}
 
 function parseCSV(text) {
-  const rows=[]; let row=[],field='',inQ=false;
-  for(let i=0;i<text.length;i++){
-    const c=text[i];
-    if(inQ){if(c==='"'&&text[i+1]==='"'){field+='"';i++;}else if(c==='"')inQ=false;else field+=c;}
-    else{if(c==='"')inQ=true;else if(c===','){row.push(field);field='';}
-    else if(c==='\n'||(c==='\r'&&text[i+1]==='\n')){if(c==='\r')i++;row.push(field);field='';if(row.some(f=>f.trim()))rows.push(row);row=[];}else field+=c;}
+  const rows = []; let row = [], field = '', inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQ) {
+      if (c === '"' && text[i+1] === '"') { field += '"'; i++; }
+      else if (c === '"') inQ = false;
+      else field += c;
+    } else {
+      if (c === '"') inQ = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\n' || (c === '\r' && text[i+1] === '\n')) {
+        if (c === '\r') i++;
+        row.push(field); field = '';
+        if (row.some(f => f.trim())) rows.push(row);
+        row = [];
+      } else field += c;
+    }
   }
-  if(row.length){row.push(field);if(row.some(f=>f.trim()))rows.push(row);}
+  if (row.length) { row.push(field); if (row.some(f => f.trim())) rows.push(row); }
   return rows;
 }
 
 function classifyStatus(raw) {
-  const v = (raw||'').toLowerCase();
-  if (v.includes('deliver') || v.includes('delivered')) return 'delivered';
-  if (v.includes('out for'))                             return 'out';
-  if (v.includes('transit') || v.includes('in transit') || v.includes('picked up') || v.includes('on the way')) return 'transit';
+  const v = (raw || '').toLowerCase();
+  if (!v) return 'pending';
+  if (v.includes('delivered'))                                   return 'delivered';
+  if (v.includes('out for delivery'))                            return 'out';
+  if (v.includes('in transit') || v.includes('on the way') || v.includes('picked up')) return 'transit';
   if (v.includes('exception') || v.includes('delay') || v.includes('failed')) return 'exception';
-  if (raw && raw.trim())                                 return 'transit'; // has a value, assume in transit
-  return 'pending';
+  return 'transit';
 }
 
-const STATUS_LABELS = { delivered:'Delivered', out:'Out for Delivery', transit:'In Transit', exception:'Exception', pending:'Pending', notrk:'No Tracking' };
+const LABELS = { delivered:'Delivered', out:'Out for Delivery', transit:'In Transit', exception:'Exception', pending:'Pending', notrk:'No Tracking' };
 
 function filterRows() {
   let visible = 0;
-  const total = document.querySelectorAll('tr[data-sclass]').length;
-  document.querySelectorAll('tr[data-sclass]').forEach(tr => {
-    const show = activeFilter === 'all' || tr.dataset.sclass === activeFilter;
+  document.querySelectorAll('tr[data-cls]').forEach(tr => {
+    const show = activeFilter === 'all' || tr.dataset.cls === activeFilter;
     tr.classList.toggle('hidden', !show);
     if (show) visible++;
   });
+  const total = document.querySelectorAll('tr[data-cls]').length;
   document.getElementById('status-text').textContent = `${visible} of ${total} shipments`;
   document.querySelectorAll('.pill').forEach(p => p.classList.toggle('active', p.dataset.f === activeFilter));
 }
 
 function build(rows) {
-  const H    = rows[0];
-  const data = rows.slice(1);
+  const H = rows[0].map(h => h.trim());
 
-  const C = {
-    style:    col(H,'style #','style#'),
-    po:       col(H,'po#','po #'),
-    shipDate: col(H,'ship date tradestone','ship date','ex-factory','exfactory'),
-    cancel:   col(H,'cancel date'),
-    fedexTrk: col(H,'tracking number'),
-    fedexSts: col(H,'delivery status','fedex status'),
+  const CI = {
+    style:   findCol(H, 'style #', 'style#'),
+    po:      findCol(H, 'po#', 'po #'),
+    ship:    findCol(H, 'ship date tradestone', 'ship date'),
+    cancel:  findCol(H, 'cancel date'),
+    trk:     findCol(H, 'tracking number'),
+    sts:     findCol(H, 'delivery status', 'fedex status'),
   };
 
-  // Only rows shipped within the last 20 days
-  const now   = new Date();
-  const cutoff = new Date(now - 30 * 86400000);
-  const shipped = data.filter(r => {
-    const sd = parseDate(C.shipDate >= 0 ? (r[C.shipDate]||'') : '');
+  const now    = new Date();
+  const cutoff = new Date(+now - 30 * 86400000);
+  const get    = (r, i) => i >= 0 ? (r[i] || '').trim() : '';
+
+  const data = rows.slice(1).filter(r => {
+    const sd = parseDate(get(r, CI.ship));
     return sd && sd >= cutoff;
   });
 
-  if (!shipped.length) {
-    document.getElementById('table-area').innerHTML =
-      '<div class="msg-box">No shipments in the last 20 days.</div>';
-    document.getElementById('status-text').textContent = '0 shipments';
+  if (!data.length) {
+    document.getElementById('table-area').innerHTML = '<div class="msg-box">No shipments in the last 30 days.</div>';
     document.getElementById('pills').innerHTML = '';
+    document.getElementById('status-text').textContent = '0 shipments';
     return;
   }
 
-  // Count by status class for pills
+  // Count for pills
   const counts = {};
-  shipped.forEach(r => {
-    const hasTracking = C.fedexTrk >= 0 && (r[C.fedexTrk]||'').trim().length > 0;
-    const raw = C.fedexSts >= 0 ? (r[C.fedexSts]||'').trim() : '';
-    const cls = hasTracking ? classifyStatus(raw) : 'notrk';
-    counts[cls] = (counts[cls]||0) + 1;
+  data.forEach(r => {
+    const hasTrack = get(r, CI.trk).length > 0;
+    const cls = hasTrack ? classifyStatus(get(r, CI.sts)) : 'notrk';
+    counts[cls] = (counts[cls] || 0) + 1;
   });
 
   // Pills
-  const total = shipped.length;
-  const pillOrder = ['delivered','out','transit','exception','notrk','pending'];
-  let pillHtml = `<div class="pill all" data-f="all" onclick="activeFilter='all';filterRows()"><div class="dot" style="background:#6b7280"></div><span>All (${total})</span></div>`;
-  pillOrder.forEach(c => {
-    if (counts[c]) pillHtml += `<div class="pill ${c}" data-f="${c}" onclick="activeFilter='${c}';filterRows()"><div class="dot"></div><span>${STATUS_LABELS[c]} (${counts[c]})</span></div>`;
+  let pillsHtml = `<div class="pill" data-f="all" onclick="setFilter('all')"><div class="dot" style="background:var(--muted)"></div><span>All (${data.length})</span></div>`;
+  ['notrk','delivered','out','transit','exception','pending'].forEach(cls => {
+    if (counts[cls]) pillsHtml += `<div class="pill ${cls}" data-f="${cls}" onclick="setFilter('${cls}')"><div class="dot"></div><span>${LABELS[cls]} (${counts[cls]})</span></div>`;
   });
-  document.getElementById('pills').innerHTML = pillHtml;
+  document.getElementById('pills').innerHTML = pillsHtml;
 
   // Table
   let html = `<table><thead><tr>
     <th>Style</th><th>PO #</th><th>Ship Date</th><th>NDC</th><th>Tracking #</th><th>Delivery Status</th>
   </tr></thead><tbody>`;
 
-  shipped.forEach((r, ri) => {
-    const get  = ci => ci >= 0 ? (r[ci]||'').trim() : '';
-    const po       = get(C.po)       || `#${ri+1}`;
-    const style    = get(C.style);
-    const shipDate = get(C.shipDate);
-    const cancel   = get(C.cancel);
-    const tracking = C.fedexTrk >= 0 ? get(C.fedexTrk) : '';
-    const statusRaw= get(C.fedexSts);
-    const hasTracking = tracking.length > 0;
-    const sclass   = hasTracking ? classifyStatus(statusRaw) : 'notrk';
+  data.forEach((r, ri) => {
+    const style    = get(r, CI.style) || '—';
+    const po       = get(r, CI.po)    || `#${ri+1}`;
+    const ship     = get(r, CI.ship);
+    const cancel   = get(r, CI.cancel);
+    const tracking = get(r, CI.trk);
+    const statusRaw= get(r, CI.sts);
+    const hasTrack = tracking.length > 0;
+    const cls      = hasTrack ? classifyStatus(statusRaw) : 'notrk';
+    const ndcRed   = withinDays(cancel, 5);
     const fedexUrl = `https://www.fedex.com/fedextrack/?trknbr=${encodeURIComponent(tracking)}`;
 
-    const ndcRed  = withinDays(cancel, 5);
-
-    html += `<tr data-sclass="${sclass}">
-      <td class="td-style">${esc(style||'—')}</td>
-      <td class="td-po">${esc(po)}</td>
-      <td class="td-date">${fmt(shipDate)}</td>
-      <td class="td-date${ndcRed?' red':''}">${fmt(cancel)}${ndcRed?' ⚠':''}</td>
-      <td>
-        ${hasTracking
-          ? `<a class="trk-link" href="${esc(fedexUrl)}" target="_blank" rel="noopener">
-              ${esc(tracking)}
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-             </a>`
-          : `<span style="color:var(--muted);font-size:11px;">—</span>`}
+    html += `<tr data-cls="${cls}">
+      <td class="td-style">${esc(style)}</td>
+      <td class="td-muted">${esc(po)}</td>
+      <td>${esc(fmtDate(ship))}</td>
+      <td class="${ndcRed ? 'td-red' : ''}">${esc(fmtDate(cancel))}${ndcRed ? ' ⚠' : ''}</td>
+      <td>${hasTrack
+        ? `<a class="trk-link" href="${esc(fedexUrl)}" target="_blank" rel="noopener">${esc(tracking)} <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>`
+        : `<span class="td-muted">—</span>`}
       </td>
-      <td>
-        ${!hasTracking
-          ? `<span class="sbadge notrk"><span class="sbadge-dot"></span>No Tracking</span>`
-          : statusRaw
-            ? `<span class="sbadge ${sclass}"><span class="sbadge-dot"></span>${esc(statusRaw)}</span>`
-            : `<span class="sbadge pending"><span class="sbadge-dot"></span>Pending</span>`}
+      <td>${hasTrack
+        ? `<span class="badge ${cls}"><span class="badge-dot"></span>${esc(statusRaw || 'Pending')}</span>`
+        : `<span class="badge notrk"><span class="badge-dot"></span>No Tracking</span>`}
       </td>
     </tr>`;
   });
 
   html += '</tbody></table>';
   document.getElementById('table-area').innerHTML = html;
-  document.getElementById('status-text').textContent = `${shipped.length} shipments`;
+  document.getElementById('status-text').textContent = `${data.length} shipments`;
+  filterRows();
+}
+
+function setFilter(f) {
+  activeFilter = f;
   filterRows();
 }
 
 async function loadData() {
-  document.getElementById('table-area').innerHTML = '<div class="msg-box"><div class="spinner"></div>Fetching data…</div>';
+  document.getElementById('table-area').innerHTML = '<div class="msg-box"><div class="spinner"></div>Loading…</div>';
   document.getElementById('pills').innerHTML = '';
   document.getElementById('status-text').textContent = 'Loading…';
   document.getElementById('reload-btn').classList.add('loading');
@@ -341,15 +322,39 @@ async function loadData() {
   try {
     const res = await fetch(CSV_URL);
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const rows = parseCSV(await res.text());
+    const text = await res.text();
+    const rows = parseCSV(text);
     if (rows.length < 2) throw new Error('No data');
     build(rows);
-  } catch(e) {
+  } catch (e) {
     document.getElementById('table-area').innerHTML =
-      `<div class="msg-box">⚠️ Could not load sheet.<br><small style="color:#9ca3af">${esc(e.message)}</small></div>`;
+      `<div class="msg-box">Could not load sheet.<br><small style="color:#9ca3af">${esc(e.message)}</small></div>`;
     document.getElementById('status-text').textContent = 'Error';
   }
   document.getElementById('reload-btn').classList.remove('loading');
+}
+
+async function runJhonny() {
+  const btn = document.getElementById('jhonny-btn');
+  btn.disabled = true;
+  btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Running…`;
+  btn.classList.add('loading');
+  try {
+    const r = await fetch('/api/run-jhonny', { method: 'POST' });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed');
+    btn.classList.remove('loading');
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Started!`;
+    setTimeout(() => {
+      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Run Jhonny`;
+      btn.disabled = false;
+    }, 3000);
+  } catch (e) {
+    btn.classList.remove('loading');
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Run Jhonny`;
+    btn.disabled = false;
+    alert('Error: ' + e.message);
+  }
 }
 
 loadData();
