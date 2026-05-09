@@ -13,8 +13,10 @@
       --text: #1a1d23; --muted: #6b7280;
       --accent: #0f766e; --accent-lt: #ccfbf1;
       --green: #16a34a; --green-lt: #dcfce7;
-      --blue: #0891b2;  --blue-lt: #cffafe;
-      --red: #dc2626;   --red-lt: #fee2e2;
+      --blue: #0891b2;   --blue-lt: #cffafe;
+      --purple: #7c3aed; --purple-lt: #ede9fe;
+      --orange: #d97706; --orange-lt: #fef3c7;
+      --red: #dc2626;    --red-lt: #fee2e2;
     }
     body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
 
@@ -50,6 +52,8 @@
     .pill.all  { color: var(--text); }
     .pill.wh   { color: var(--green); }
     .pill.tr   { color: var(--blue); }
+    .pill.sh   { color: var(--purple); }
+    .pill.prod { color: var(--orange); }
     .pill.dl   { color: var(--red); }
     .pill.active { background: currentColor; border-color: currentColor; }
     .pill.active span { color: #fff !important; }
@@ -60,8 +64,10 @@
     .card:hover { box-shadow: 0 3px 14px rgba(0,0,0,0.07); }
     .card.hidden { display: none; }
     .card.wh { border-left-color: var(--green); }
-    .card.tr { border-left-color: var(--blue); }
-    .card.dl { border-left-color: var(--red); }
+    .card.tr   { border-left-color: var(--blue); }
+    .card.sh   { border-left-color: var(--purple); }
+    .card.prod { border-left-color: var(--orange); }
+    .card.dl   { border-left-color: var(--red); }
     .card-body { padding: 11px 13px; display: flex; flex-direction: column; gap: 8px; }
 
     .card-top { display: flex; justify-content: space-between; align-items: center; }
@@ -70,8 +76,10 @@
     .badge { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 20px; white-space: nowrap; }
     .badge.wh  { background: var(--green-lt); color: #166534; }
     .badge.tr  { background: var(--blue-lt);  color: #155e75; }
-    .badge.dl  { background: var(--red-lt);   color: #991b1b; }
-    .badge.oth { background: #f3f4f6; color: var(--muted); }
+    .badge.dl   { background: var(--red-lt);    color: #991b1b; }
+    .badge.sh   { background: var(--purple-lt); color: #5b21b6; }
+    .badge.prod { background: var(--orange-lt); color: #92400e; }
+    .badge.oth  { background: #f3f4f6;          color: var(--muted); }
 
     /* STATUS VISUAL */
     .vis { border-radius: 6px; padding: 7px 10px; }
@@ -87,6 +95,17 @@
     .plane { position: absolute; top: 50%; transform: translateY(-50%); }
     .vis-tr-dates { display: flex; justify-content: space-between; margin-top: 4px; font-size: 9px; color: #0e7490; }
     .vis-tr-dates .red { color: #dc2626; font-weight: 700; }
+
+    .vis-sh { background: var(--purple-lt); }
+    .vis-sh-top { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 10px; font-weight: 600; color: #5b21b6; }
+    .progress-track-sh { height: 5px; background: rgba(124,58,237,0.2); border-radius: 3px; position: relative; }
+    .progress-fill-sh { height: 100%; background: var(--purple); border-radius: 3px; }
+    .vis-sh-dates { display: flex; justify-content: space-between; margin-top: 4px; font-size: 9px; color: #6d28d9; }
+
+    .vis-prod { background: var(--orange-lt); display: flex; align-items: center; gap: 8px; }
+    .vis-prod-icon { width: 26px; height: 26px; background: var(--orange); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .vis-prod-text { font-size: 11px; font-weight: 600; color: #92400e; }
+    .vis-prod-sub  { font-size: 10px; color: #b45309; }
 
     .vis-dl { background: var(--red-lt); display: flex; align-items: center; gap: 8px; }
     .dl-dot { width: 9px; height: 9px; background: var(--red); border-radius: 50%; flex-shrink: 0; animation: pulse 1.5s ease-in-out infinite; }
@@ -238,7 +257,9 @@ function col(headers, ...kws) {
 function classify(v) {
   const s = (v||'').toLowerCase();
   if (s.includes('warehouse') || s.includes('received') || s.includes('arrived')) return 'wh';
-  if (s.includes('transit')   || s.includes('shipped')  || s.includes('route'))   return 'tr';
+  if (s.includes('transit')   || s.includes('route'))                              return 'tr';
+  if (s.includes('shipped'))                                                        return 'sh';
+  if (s.includes('production'))                                                     return 'prod';
   if (s.includes('delay')     || s.includes('late')     || s.includes('hold'))     return 'dl';
   return 'oth';
 }
@@ -308,7 +329,7 @@ function build(rows) {
   const g = v => (v !== null && v >= 0 ? (data[0]?.[v]??'') : ''); // just for ref
   const get = (r, ci) => ci >= 0 ? (r[ci]||'').trim() : '';
 
-  const counts = { wh:0, tr:0, dl:0, oth:0 };
+  const counts = { wh:0, tr:0, sh:0, prod:0, dl:0, oth:0 };
   const cards = data.map((r, ri) => {
     const statusRaw = get(r, C.status);
     const cls = classify(statusRaw);
@@ -332,7 +353,7 @@ function build(rows) {
     const arrStr  = arrDate ? arrDate.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}) : '—';
 
     // Red conditions
-    const flightRed  = exDate  && exDate  < now && cls !== 'tr' && cls !== 'wh';
+    const flightRed  = exDate  && exDate  < now && cls !== 'tr' && cls !== 'sh' && cls !== 'wh';
     const arrRed     = arrDate && arrDate < now && cls !== 'wh';
     const shipRed    = exDate  && exDate  < now;
     const ndcDate    = parseDate(cancel);
@@ -363,6 +384,23 @@ function build(rows) {
           <span class="${flightRed?'red':''}">Flight: ${fmt(exfac)}</span>
           <span class="${arrRed?'red':''}">Arrival: ${arrStr}</span>
         </div>
+      </div>`;
+    } else if (cls === 'sh') {
+      vis = `<div class="vis vis-sh">
+        <div class="vis-sh-top"><span>Shipped</span><span>${pct}%</span></div>
+        <div class="progress-track-sh">
+          <div class="progress-fill-sh" style="width:${pct}%"></div>
+          <div class="plane" style="left:${planeLeft}%"><svg width="14" height="14" viewBox="0 0 24 24" fill="#7c3aed" stroke="none"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></div>
+        </div>
+        <div class="vis-sh-dates">
+          <span>Flight: ${fmt(exfac)}</span>
+          <span class="${arrRed?'red':''}">Arrival: ${arrStr}</span>
+        </div>
+      </div>`;
+    } else if (cls === 'prod') {
+      vis = `<div class="vis vis-prod">
+        <div class="vis-prod-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg></div>
+        <div><div class="vis-prod-text">In Production</div><div class="vis-prod-sub">${esc(statusRaw)}</div></div>
       </div>`;
     } else if (cls === 'dl') {
       vis = `<div class="vis vis-dl">
@@ -412,11 +450,13 @@ function build(rows) {
 
   const total = data.length;
   document.getElementById('pills').innerHTML = `
-    <div class="pill all active" data-f="all" onclick="activeFilter='all';filterCards()"><div class="dot" style="background:#6b7280"></div><span>All <span class="cnt">(${total})</span></span></div>
-    <div class="pill wh" data-f="wh" onclick="activeFilter='wh';filterCards()"><div class="dot"></div><span>In Warehouse <span class="cnt">(${counts.wh})</span></span></div>
-    <div class="pill tr" data-f="tr" onclick="activeFilter='tr';filterCards()"><div class="dot"></div><span>In Transit <span class="cnt">(${counts.tr})</span></span></div>
-    <div class="pill dl" data-f="dl" onclick="activeFilter='dl';filterCards()"><div class="dot"></div><span>Delayed <span class="cnt">(${counts.dl})</span></span></div>
-    ${counts.oth ? `<div class="pill oth" data-f="oth" onclick="activeFilter='oth';filterCards()"><div class="dot" style="background:#9ca3af"></div><span>Other <span class="cnt">(${counts.oth})</span></span></div>` : ''}
+    <div class="pill all active" data-f="all"  onclick="activeFilter='all';filterCards()"><div class="dot" style="background:#6b7280"></div><span>All <span class="cnt">(${total})</span></span></div>
+    <div class="pill wh"  data-f="wh"   onclick="activeFilter='wh';filterCards()"><div class="dot"></div><span>In Warehouse <span class="cnt">(${counts.wh})</span></span></div>
+    <div class="pill tr"  data-f="tr"   onclick="activeFilter='tr';filterCards()"><div class="dot"></div><span>In Transit <span class="cnt">(${counts.tr})</span></span></div>
+    <div class="pill sh"  data-f="sh"   onclick="activeFilter='sh';filterCards()"><div class="dot"></div><span>Shipped <span class="cnt">(${counts.sh})</span></span></div>
+    ${counts.prod ? `<div class="pill prod" data-f="prod" onclick="activeFilter='prod';filterCards()"><div class="dot"></div><span>Production <span class="cnt">(${counts.prod})</span></span></div>` : ''}
+    <div class="pill dl"  data-f="dl"   onclick="activeFilter='dl';filterCards()"><div class="dot"></div><span>Delayed <span class="cnt">(${counts.dl})</span></span></div>
+    ${counts.oth ? `<div class="pill oth"  data-f="oth"  onclick="activeFilter='oth';filterCards()"><div class="dot" style="background:#9ca3af"></div><span>Other <span class="cnt">(${counts.oth})</span></span></div>` : ''}
   `;
 
   document.getElementById('status-text').textContent = `${total} POs`;
