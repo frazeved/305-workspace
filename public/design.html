@@ -1,33 +1,188 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>305 Workspace — Design</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: "Inter", sans-serif; background: #f8f9fc; color: #1a1d23; min-height: 100vh; display: flex; flex-direction: column; }
-    nav { background: #fff; border-bottom: 1px solid #e4e7ed; padding: 0 32px; height: 56px; display: flex; align-items: center; gap: 16px; }
-    .nav-brand { font-size: 15px; font-weight: 700; color: #1a1d23; text-decoration: none; }
-    .nav-brand span { color: #2563eb; }
-    .nav-back { font-size: 13px; color: #6b7280; text-decoration: none; }
-    .nav-back:hover { color: #1a1d23; }
-    main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 24px; text-align: center; gap: 24px; }
-    .icon-wrap { width: 100px; height: 100px; border-radius: 24px; background: #fff; border: 1.5px solid #e4e7ed; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
-    h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
-    .badge { display: inline-flex; align-items: center; gap: 8px; background: #fffbeb; border: 1px solid #fde68a; color: #92400e; font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: 10px; }
+    :root {
+      --bg: #f5f6fa; --surface: #fff; --border: #e4e7ed;
+      --text: #1a1d23; --text-secondary: #6b7280; --text-muted: #9ca3af;
+      --accent: #db2777; --accent-light: #fdf2f8; --accent-hover: #be185d;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 50; }
+    .nav-brand { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+    .nav-brand span { color: var(--accent); }
+    .nav-links { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+    .nav-link { font-size: 12px; font-weight: 500; padding: 5px 10px; border-radius: 6px; text-decoration: none; color: var(--text-secondary); transition: background 0.15s, color 0.15s; white-space: nowrap; }
+    .nav-link:hover { background: var(--bg); color: var(--text); }
+    .nav-link.active { background: var(--accent-light); color: var(--accent); }
+    .layout { display: flex; align-items: flex-start; gap: 24px; max-width: 1200px; margin: 0 auto; padding: 32px 24px 60px; }
+    .sidebar { width: 240px; flex-shrink: 0; position: sticky; top: 72px; }
+    .sidebar-agent { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px 20px 20px; text-align: center; margin-bottom: 16px; }
+    .avatar-circle { width: 120px; height: 120px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 42px; font-weight: 700; color: #fff; box-shadow: 0 0 0 4px var(--accent-light), 0 0 0 7px #fbcfe8; }
+    .sidebar-label { font-size: 10px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .sidebar-name { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -0.4px; margin-bottom: 4px; }
+    .sidebar-title { font-size: 11px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px; }
+    .sidebar-desc { font-size: 11px; color: var(--text-muted); line-height: 1.6; text-align: left; margin-bottom: 14px; }
+    .sidebar-tags { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
+    .sidebar-tag { font-size: 10px; font-weight: 500; background: var(--bg); border: 1px solid var(--border); color: var(--text-secondary); padding: 2px 8px; border-radius: 20px; }
+    .chat-toggle { width: 100%; display: flex; align-items: center; gap: 10px; padding: 11px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; color: var(--accent); transition: background 0.15s, border-color 0.15s; }
+    .chat-toggle:hover { background: var(--accent-light); border-color: #fbcfe8; }
+    .sidebar-chat { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-top: 10px; display: none; }
+    .sidebar-chat.open { display: block; }
+    .chat-head { background: var(--accent); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
+    .chat-head-left { display: flex; align-items: center; gap: 8px; }
+    .chat-head-mini { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; border: 2px solid rgba(255,255,255,0.4); }
+    .chat-head-name { font-size: 13px; font-weight: 600; color: #fff; }
+    .chat-head-sub { font-size: 10px; color: rgba(255,255,255,0.75); }
+    .chat-close { background: none; border: none; color: rgba(255,255,255,0.8); font-size: 18px; cursor: pointer; }
+    .chat-close:hover { color: #fff; }
+    .chat-body { padding: 14px; display: flex; flex-direction: column; gap: 9px; }
+    .chat-bubble { background: var(--accent-light); border-radius: 10px 10px 10px 3px; padding: 9px 12px; font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+    .chat-field { display: flex; flex-direction: column; gap: 3px; }
+    .chat-field label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .chat-field input, .chat-field textarea { font-family: inherit; font-size: 12px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 7px; outline: none; color: var(--text); background: var(--bg); resize: none; transition: border-color 0.15s; }
+    .chat-field input:focus, .chat-field textarea:focus { border-color: var(--accent); }
+    .chat-send { background: var(--accent); color: #fff; border: none; border-radius: 7px; padding: 9px; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.15s; margin-top: 2px; }
+    .chat-send:hover { background: var(--accent-hover); }
+    .chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
+    .chat-success { text-align: center; padding: 20px 14px; font-size: 12px; color: #16a34a; font-weight: 500; display: none; }
+    .content { flex: 1; min-width: 0; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .section-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.6px; }
+    .btn-run { background: #e5e7eb; color: var(--text-muted); border: none; border-radius: 8px; padding: 8px 18px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: not-allowed; display: flex; align-items: center; gap: 7px; }
+    .soon-label { font-size: 10px; background: #fef9c3; color: #854d0e; border: 1px solid #fde68a; border-radius: 20px; padding: 2px 8px; font-weight: 600; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; display: flex; flex-direction: column; opacity: 0.8; }
+    .card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+    .card-title { font-size: 13px; font-weight: 600; color: var(--text); }
+    .card-dest { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .card-body { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+    .card-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.55; }
+    .toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: #fff; font-size: 13px; font-weight: 500; padding: 10px 16px; border-radius: 8px; opacity: 0; transform: translateY(8px); transition: all 0.2s; pointer-events: none; z-index: 100; }
+    .toast.show { opacity: 1; transform: translateY(0); }
   </style>
 </head>
 <body>
 <nav>
-  <a class="nav-brand" href="/">305 <span>Workspace</span></a>
-  <a class="nav-back" href="/">&#8592; Back to Home</a>
+  <div class="nav-brand">305 <span>Workspace</span></div>
+  <div class="nav-links">
+    <a class="nav-link" href="/">&#8592; Home</a>
+    <a class="nav-link" href="warehouse.html">Warehouse Now</a>
+    <a class="nav-link" href="production.html">Production</a>
+    <a class="nav-link" href="samples.html">Samples Tracking</a>
+    <a class="nav-link active" href="design.html">Design</a>
+    <a class="nav-link" href="map.html">Map Updates</a>
+    <a class="nav-link" href="forecast.html">Forecast</a>
+    <a class="nav-link" href="gantt.html">Gantt Chart</a>
+    <a class="nav-link" href="tradestone.html">Tradestone Updates</a>
+    <a class="nav-link" href="rlm.html">RLM Updates</a>
+  </div>
 </nav>
-<main>
-  <div class="icon-wrap"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#db2777" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/></svg></div>
-  <h1>Design</h1>
-  <div class="badge">🚧 Under Construction by Automation Team</div>
-</main>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-agent">
+      <div class="avatar-circle">D</div>
+      <div class="sidebar-label">AI Agent</div>
+      <div class="sidebar-name">Design</div>
+      <div class="sidebar-title">Design & Development Specialist<br>Style Tracking & Approvals</div>
+      <div class="sidebar-desc">
+        Tracks style development from concept to approval, manages tech pack status, organizes design files in Google Drive, and monitors approval workflows across the team.
+      </div>
+      <div class="sidebar-tags">
+        <span class="sidebar-tag">Design</span>
+        <span class="sidebar-tag">Tech Packs</span>
+        <span class="sidebar-tag">Approvals</span>
+        <span class="sidebar-tag">4 Reports</span>
+      </div>
+    </div>
+    <button class="chat-toggle" onclick="toggleChat()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Message the team
+    </button>
+    <div class="sidebar-chat" id="chat-panel">
+      <div class="chat-head">
+        <div class="chat-head-left">
+          <div class="chat-head-mini">D</div>
+          <div><div class="chat-head-name">Message the team</div><div class="chat-head-sub">We'll reply by email</div></div>
+        </div>
+        <button class="chat-close" onclick="toggleChat()">&#x2715;</button>
+      </div>
+      <div class="chat-body" id="chat-body">
+        <div class="chat-bubble">Hi! Leave a message and the team will get back to you.</div>
+        <div class="chat-field"><label>Your name</label><input id="chat-name" type="text" placeholder="Jane Smith" /></div>
+        <div class="chat-field"><label>Email (optional)</label><input id="chat-email" type="email" placeholder="jane@company.com" /></div>
+        <div class="chat-field"><label>Message</label><textarea id="chat-message" rows="3" placeholder="What do you need?"></textarea></div>
+        <button class="chat-send" id="chat-send-btn" onclick="sendChat()">Send Message</button>
+      </div>
+      <div class="chat-success" id="chat-success">✅ Sent! The team will reply soon.</div>
+    </div>
+  </aside>
+
+  <div class="content">
+    <div class="section-header">
+      <div class="section-title">Active Tasks</div>
+      <button class="btn-run" disabled>
+        <span>Run Agent</span>
+        <span class="soon-label">Coming Soon</span>
+      </button>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">STYLE DEVELOPMENT TRACKER</div><div class="card-dest">&#x2192; Google Sheets</div></div>
+          <span class="soon-label">Coming Soon</span>
+        </div>
+        <div class="card-body"><div class="card-desc">Tracks every style from concept through development stages — design, prototype, revision, and final approval with owner and date.</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">TECH PACK STATUS</div><div class="card-dest">&#x2192; Google Sheets</div></div>
+          <span class="soon-label">Coming Soon</span>
+        </div>
+        <div class="card-body"><div class="card-desc">Monitors tech pack completion per style — tracks which are pending, in review, sent to factory, or approved and ready for production.</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">APPROVAL WORKFLOW</div><div class="card-dest">&#x2192; Email Notifications</div></div>
+          <span class="soon-label">Coming Soon</span>
+        </div>
+        <div class="card-body"><div class="card-desc">Sends automated notifications when a style is ready for review, approved, or sent back for changes — keeping everyone in the loop.</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">DESIGN FILE REGISTRY</div><div class="card-dest">&#x2192; Google Drive</div></div>
+          <span class="soon-label">Coming Soon</span>
+        </div>
+        <div class="card-body"><div class="card-desc">Organizes all design files, sketches, and tech packs by season and style in Google Drive with standardized naming and folder structure.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script>
+function toggleChat() { document.getElementById('chat-panel').classList.toggle('open'); }
+async function sendChat() {
+  const name = document.getElementById('chat-name').value.trim();
+  const email = document.getElementById('chat-email').value.trim();
+  const message = document.getElementById('chat-message').value.trim();
+  if (!name || !message) { alert('Please enter your name and message.'); return; }
+  const btn = document.getElementById('chat-send-btn');
+  btn.disabled = true; btn.textContent = 'Sending...';
+  try {
+    const res = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, message }) });
+    if (!res.ok) throw new Error();
+    document.getElementById('chat-body').style.display = 'none';
+    document.getElementById('chat-success').style.display = 'block';
+  } catch { btn.disabled = false; btn.textContent = 'Send Message'; alert('Could not send. Please try again.'); }
+}
+</script>
 </body>
 </html>
