@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>305 Workspace — Samantha</title>
+  <title>305 Workspace â€” Samantha</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
@@ -40,7 +40,7 @@
       min-height: 100vh;
     }
 
-    /* ── NAV ── */
+    /* â”€â”€ NAV â”€â”€ */
     nav {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
@@ -105,7 +105,7 @@
       font-weight: 400;
     }
 
-    /* ── LAYOUT ── */
+    /* â”€â”€ LAYOUT â”€â”€ */
     .layout {
       display: flex;
       align-items: flex-start;
@@ -115,7 +115,7 @@
       padding: 32px 24px 60px;
     }
 
-    /* ── LEFT SIDEBAR ── */
+    /* â”€â”€ LEFT SIDEBAR â”€â”€ */
     .sidebar {
       width: 240px;
       flex-shrink: 0;
@@ -198,7 +198,7 @@
       border-radius: 20px;
     }
 
-    /* ── CHAT TOGGLE BUTTON ── */
+    /* â”€â”€ CHAT TOGGLE BUTTON â”€â”€ */
     .chat-toggle {
       width: 100%;
       display: flex;
@@ -218,7 +218,7 @@
     .chat-toggle:hover { background: var(--accent-light); border-color: #bfdbfe; }
     .chat-toggle svg { flex-shrink: 0; }
 
-    /* ── INLINE CHAT PANEL ── */
+    /* â”€â”€ INLINE CHAT PANEL â”€â”€ */
     .sidebar-chat {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -329,10 +329,10 @@
       display: none;
     }
 
-    /* ── RIGHT CONTENT ── */
+    /* â”€â”€ RIGHT CONTENT â”€â”€ */
     .content { flex: 1; min-width: 0; }
 
-    /* ── SECTION HEADER ── */
+    /* â”€â”€ SECTION HEADER â”€â”€ */
     .section-header {
       display: flex;
       align-items: center;
@@ -390,7 +390,7 @@
     .btn-run.loading .spinner { display: block; }
     .btn-run.loading .btn-label { display: none; }
 
-    /* ── TASK GRID ── */
+    /* â”€â”€ TASK GRID â”€â”€ */
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -489,7 +489,7 @@
 
     .card-link:hover { background: #dbeafe; }
 
-    /* ── TOAST ── */
+    /* â”€â”€ TOAST â”€â”€ */
     .toast {
       position: fixed;
       bottom: 24px;
@@ -526,7 +526,7 @@
     <a class="nav-link" href="production.html">Production</a>
     <a class="nav-link" href="samples.html">Samples Tracking</a>
     <a class="nav-link" href="design.html">Design</a>
-    <a class="nav-link" href="dhl.html">DHL Payments</a>
+    <a class="nav-link" href="dhl.html">DHL Duties Cost</a>
     <a class="nav-link" href="shipment.html">New Shipment</a>
     <a class="nav-link" href="map.html">Map Updates</a>
     <a class="nav-link" href="forecast.html">Forecast</a>
@@ -551,7 +551,7 @@
       <div class="sidebar-name">Samantha</div>
       <div class="sidebar-title">Data Extraction Specialist<br>TradeStone PLM</div>
       <div class="sidebar-desc">
-        Samantha connects to TradeStone PLM, runs your PO extractions on schedule or on demand, and delivers clean data directly to Google Sheets — no manual work required.
+        Samantha connects to TradeStone PLM, runs your PO extractions on schedule or on demand, and delivers clean data directly to Google Sheets â€” no manual work required.
       </div>
       <div class="sidebar-tags">
         <span class="sidebar-tag">TradeStone PLM</span>
@@ -600,7 +600,7 @@
         <button class="chat-send" id="chat-send-btn" onclick="sendChat()">Send Message</button>
       </div>
       <div class="chat-success" id="chat-success">
-        ✅ Sent! The team will reply soon.
+        âœ… Sent! The team will reply soon.
       </div>
     </div>
 
@@ -685,7 +685,7 @@ function badgeLabel(status, conclusion) {
 }
 
 function timeAgo(iso) {
-  if (!iso) return '—';
+  if (!iso) return 'â€”';
   const diff = Math.floor((Date.now() - new Date(iso)) / 1000);
   if (diff < 60) return `${diff}s ago`;
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
@@ -694,12 +694,12 @@ function timeAgo(iso) {
 }
 
 function formatDate(iso) {
-  if (!iso) return '—';
+  if (!iso) return 'â€”';
   return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 function formatDuration(s) {
-  if (s === null || s === undefined) return '—';
+  if (s === null || s === undefined) return 'â€”';
   if (s < 60) return `${s}s`;
   return `${Math.floor(s / 60)}m ${s % 60}s`;
 }
@@ -801,7 +801,7 @@ async function runAll() {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || `Server error ${res.status}`);
     setAllQueued();
-    showToast('Samantha is running — updating every 5s');
+    showToast('Samantha is running â€” updating every 5s');
     startPolling();
   } catch (e) {
     showToast(`Failed: ${e.message}`, true);
@@ -834,3 +834,4 @@ startCountdown();
 </script>
 </body>
 </html>
+
