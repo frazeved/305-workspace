@@ -198,21 +198,47 @@
       border-radius: 20px;
     }
 
-    /* ── INLINE CHAT ── */
+    /* ── CHAT TOGGLE BUTTON ── */
+    .chat-toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .chat-toggle:hover { background: var(--accent-light); border-color: #bfdbfe; }
+    .chat-toggle svg { flex-shrink: 0; }
+
+    /* ── INLINE CHAT PANEL ── */
     .sidebar-chat {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 14px;
       overflow: hidden;
+      margin-top: 10px;
+      display: none;
     }
+    .sidebar-chat.open { display: block; }
 
     .chat-head {
       background: var(--accent);
       padding: 12px 16px;
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 8px;
     }
+
+    .chat-head-left { display: flex; align-items: center; gap: 8px; }
 
     .chat-head-avatar {
       width: 28px; height: 28px;
@@ -231,6 +257,17 @@
 
     .chat-head-name { font-size: 13px; font-weight: 600; color: #fff; }
     .chat-head-sub  { font-size: 10px; color: rgba(255,255,255,0.75); }
+
+    .chat-close {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.8);
+      font-size: 18px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 2px;
+    }
+    .chat-close:hover { color: #fff; }
 
     .chat-body { padding: 14px; display: flex; flex-direction: column; gap: 9px; }
 
@@ -519,16 +556,27 @@
       </div>
     </div>
 
-    <!-- Inline Chat -->
-    <div class="sidebar-chat">
+    <!-- Chat Toggle Button -->
+    <button class="chat-toggle" onclick="toggleChat()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+      Message the team
+    </button>
+
+    <!-- Chat Panel (hidden by default) -->
+    <div class="sidebar-chat" id="chat-panel">
       <div class="chat-head">
-        <div class="chat-head-avatar">
-          <img src="samantha.jpg.png" alt="Samantha" />
+        <div class="chat-head-left">
+          <div class="chat-head-avatar">
+            <img src="samantha.jpg.png" alt="Samantha" />
+          </div>
+          <div>
+            <div class="chat-head-name">Message the team</div>
+            <div class="chat-head-sub">We'll reply by email</div>
+          </div>
         </div>
-        <div>
-          <div class="chat-head-name">Message the team</div>
-          <div class="chat-head-sub">We'll reply by email</div>
-        </div>
+        <button class="chat-close" onclick="toggleChat()">&#x2715;</button>
       </div>
       <div class="chat-body" id="chat-body">
         <div class="chat-bubble">Hi! Leave a message and the team will get back to you.</div>
@@ -573,6 +621,10 @@
 <div class="toast" id="toast"></div>
 
 <script>
+function toggleChat() {
+  document.getElementById('chat-panel').classList.toggle('open');
+}
+
 async function sendChat() {
   const name = document.getElementById('chat-name').value.trim();
   const email = document.getElementById('chat-email').value.trim();
