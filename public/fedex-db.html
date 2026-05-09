@@ -231,20 +231,20 @@ function build(rows) {
   console.log('[fedex-db] headers:', H.slice(0, 15).join(' | '));
 
   const CI = {
-    style:   findCol(H, 'style #', 'style#'),
-    po:      findCol(H, 'po#'),
-    ship:    findCol(H, 'ship date tradestone', 'ship date'),
-    cancel:  findCol(H, 'cancel date'),
-    trk:     findCol(H, 'tracking number'),
+    style:   findCol(H, 'style#', 'style #', 'style name', 'style'),
+    po:      findCol(H, 'po#', 'po ', 'purchase order', 'order#'),
+    ship:    findCol(H, 'ship date tradestone', 'ship date', 'ex-factory', 'exfactory'),
+    cancel:  findCol(H, 'cancel date', 'cancel by', 'cancel'),
+    trk:     findCol(H, 'tracking number', 'tracking', 'awb'),
     sts:     findCol(H, 'delivery status', 'fedex status'),
   };
+  console.log('[fedex-db] CI:', CI, CI.po >= 0 ? '| PO header: ' + H[CI.po] : '| PO NOT FOUND');
 
   const now    = new Date();
   const cutoff = new Date(+now - 60 * 86400000);
   const get    = (r, i) => i >= 0 ? (r[i] || '').trim() : '';
 
-  console.log('[fedex-db] CI:', CI);
-  const statusCol = findCol(H, 'status');
+  const statusCol = findCol(H, 'warehouse status', 'wh status', 'status');
   console.log('[fedex-db] statusCol:', statusCol, '=', H[statusCol]);
   const data = rows.slice(1).filter(r => {
     const sd  = parseDate(get(r, CI.ship));
