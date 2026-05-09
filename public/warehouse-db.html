@@ -55,71 +55,72 @@
     .pill.active span { color: #fff !important; }
 
     /* CARDS */
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: box-shadow 0.15s; }
-    .card:hover { box-shadow: 0 4px 18px rgba(0,0,0,0.08); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; transition: box-shadow 0.15s; border-left: 3px solid var(--border); }
+    .card:hover { box-shadow: 0 3px 14px rgba(0,0,0,0.07); }
     .card.hidden { display: none; }
-    .card-bar { height: 4px; }
-    .card-bar.wh { background: var(--green); }
-    .card-bar.tr { background: var(--blue); }
-    .card-bar.dl { background: var(--red); }
-    .card-bar.oth { background: var(--border); }
-    .card-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+    .card.wh { border-left-color: var(--green); }
+    .card.tr { border-left-color: var(--blue); }
+    .card.dl { border-left-color: var(--red); }
+    .card-body { padding: 11px 13px; display: flex; flex-direction: column; gap: 8px; }
 
-    .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
-    .card-po { font-size: 13px; font-weight: 700; }
-    .card-style { font-size: 11px; color: var(--muted); margin-top: 2px; }
-    .badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
+    .card-top { display: flex; justify-content: space-between; align-items: center; }
+    .card-po { font-size: 12px; font-weight: 700; }
+    .card-style { font-size: 10px; color: var(--muted); margin-top: 1px; }
+    .badge { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 20px; white-space: nowrap; }
     .badge.wh  { background: var(--green-lt); color: #166534; }
     .badge.tr  { background: var(--blue-lt);  color: #155e75; }
     .badge.dl  { background: var(--red-lt);   color: #991b1b; }
     .badge.oth { background: #f3f4f6; color: var(--muted); }
 
     /* STATUS VISUAL */
-    .vis { border-radius: 8px; padding: 10px 12px; }
-    .vis-wh { background: var(--green-lt); display: flex; align-items: center; gap: 10px; }
-    .vis-wh-icon { width: 34px; height: 34px; background: var(--green); border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .vis-wh-text { font-size: 12px; font-weight: 600; color: #166534; }
-    .vis-wh-sub  { font-size: 11px; color: #15803d; margin-top: 1px; }
+    .vis { border-radius: 6px; padding: 7px 10px; }
+    .vis-wh { background: var(--green-lt); display: flex; align-items: center; gap: 8px; }
+    .vis-wh-icon { width: 26px; height: 26px; background: var(--green); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .vis-wh-text { font-size: 11px; font-weight: 600; color: #166534; }
+    .vis-wh-sub  { font-size: 10px; color: #15803d; }
 
     .vis-tr { background: var(--blue-lt); }
-    .vis-tr-top { display: flex; justify-content: space-between; margin-bottom: 7px; font-size: 11px; font-weight: 600; color: #155e75; }
-    .progress-track { height: 6px; background: rgba(8,145,178,0.2); border-radius: 3px; position: relative; }
+    .vis-tr-top { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 10px; font-weight: 600; color: #155e75; }
+    .progress-track { height: 5px; background: rgba(8,145,178,0.2); border-radius: 3px; position: relative; }
     .progress-fill { height: 100%; background: var(--blue); border-radius: 3px; }
-    .plane { position: absolute; top: 50%; transform: translateY(-50%); transition: left 0.3s; }
-    .vis-tr-dates { display: flex; justify-content: space-between; margin-top: 5px; font-size: 10px; color: #0e7490; }
-
-    .vis-dl { background: var(--red-lt); display: flex; align-items: center; gap: 10px; }
-    .dl-dot { width: 11px; height: 11px; background: var(--red); border-radius: 50%; flex-shrink: 0; animation: pulse 1.5s ease-in-out infinite; }
-    @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,0.4)} 50%{box-shadow:0 0 0 6px rgba(220,38,38,0)} }
-    .vis-dl-text { font-size: 12px; font-weight: 600; color: #991b1b; }
-    .vis-dl-sub  { font-size: 11px; color: #b91c1c; margin-top: 1px; }
-
-    /* DATES */
-    .dates { display: flex; gap: 10px; flex-wrap: wrap; }
-    .date-item { flex: 1; min-width: 70px; }
-    .date-lbl { font-size: 9px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 2px; }
-    .date-val { font-size: 12px; font-weight: 600; }
-    .date-val.red { color: var(--red); }
+    .plane { position: absolute; top: 50%; transform: translateY(-50%); }
+    .vis-tr-dates { display: flex; justify-content: space-between; margin-top: 4px; font-size: 9px; color: #0e7490; }
     .vis-tr-dates .red { color: #dc2626; font-weight: 700; }
 
-    /* METRICS */
-    .metrics { display: flex; gap: 6px; }
-    .metric { flex: 1; background: var(--bg); border-radius: 6px; padding: 6px 8px; text-align: center; }
-    .metric-lbl { font-size: 9px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 2px; }
-    .metric-val { font-size: 13px; font-weight: 700; }
+    .vis-dl { background: var(--red-lt); display: flex; align-items: center; gap: 8px; }
+    .dl-dot { width: 9px; height: 9px; background: var(--red); border-radius: 50%; flex-shrink: 0; animation: pulse 1.5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,0.4)} 50%{box-shadow:0 0 0 5px rgba(220,38,38,0)} }
+    .vis-dl-text { font-size: 11px; font-weight: 600; color: #991b1b; }
+    .vis-dl-sub  { font-size: 10px; color: #b91c1c; }
 
-    /* LABELS */
-    .label-row { display: flex; gap: 5px; }
-    .lbl { font-size: 10px; font-weight: 700; padding: 3px 7px; border-radius: 4px; letter-spacing: 0.4px; }
+    /* DATES — inline strip */
+    .dates { display: flex; gap: 0; background: var(--bg); border-radius: 6px; overflow: hidden; }
+    .date-item { flex: 1; padding: 5px 8px; border-right: 1px solid var(--border); }
+    .date-item:last-child { border-right: none; }
+    .date-lbl { font-size: 8px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+    .date-val { font-size: 11px; font-weight: 600; }
+    .date-val.red { color: var(--red); }
+
+    /* METRICS — inline */
+    .metrics { display: flex; gap: 0; background: var(--bg); border-radius: 6px; overflow: hidden; }
+    .metric { flex: 1; padding: 5px 8px; border-right: 1px solid var(--border); text-align: center; }
+    .metric:last-child { border-right: none; }
+    .metric-lbl { font-size: 8px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 2px; }
+    .metric-val { font-size: 11px; font-weight: 700; }
+
+    /* BOTTOM ROW — labels + awb together */
+    .bottom-row { display: flex; align-items: center; gap: 6px; }
+    .label-row { display: flex; gap: 4px; }
+    .lbl { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.3px; }
     .lbl.done    { background: var(--green-lt); color: #166534; border: 1px solid #86efac; }
     .lbl.pending { background: var(--red-lt);  color: var(--red); border: 1px solid #fca5a5; }
 
     /* AWB */
-    .awb-row { display: flex; align-items: center; gap: 6px; background: #f8f9fa; border-radius: 6px; padding: 6px 10px; }
-    .awb-link { font-size: 11px; font-weight: 600; color: var(--accent); text-decoration: none; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .awb-row { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+    .awb-link { font-size: 10px; font-weight: 600; color: var(--accent); text-decoration: none; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .awb-link:hover { text-decoration: underline; }
-    .awb-copy { background: none; border: none; cursor: pointer; color: var(--muted); padding: 2px; display: flex; border-radius: 3px; }
+    .awb-copy { background: none; border: none; cursor: pointer; color: var(--muted); padding: 1px; display: flex; border-radius: 3px; }
     .awb-copy:hover { color: var(--accent); }
 
     .msg-box { padding: 60px 24px; text-align: center; color: var(--muted); font-size: 13px; grid-column: 1/-1; }
@@ -329,8 +330,7 @@ function build(rows) {
       </div>`;
     }
 
-    return `<div class="card" data-cls="${cls}">
-      <div class="card-bar ${cls}"></div>
+    return `<div class="card ${cls}" data-cls="${cls}">
       <div class="card-body">
         <div class="card-top">
           <div>
@@ -342,7 +342,7 @@ function build(rows) {
         ${vis}
         <div class="dates">
           ${exfac  ? `<div class="date-item"><div class="date-lbl">Ship Date</div><div class="date-val${shipRed?' red':''}">${fmt(exfac)}</div></div>` : ''}
-          ${cancel ? `<div class="date-item"><div class="date-lbl">NDC${ndcRed?' ⚠':''}${ndcRed&&ndcDate>now?' *':''}</div><div class="date-val${ndcRed?' red':''}">${fmt(cancel)}</div></div>` : ''}
+          ${cancel ? `<div class="date-item"><div class="date-lbl">NDC${ndcRed?' ⚠':''}</div><div class="date-val${ndcRed?' red':''}">${fmt(cancel)}</div></div>` : ''}
           ${arrDate? `<div class="date-item"><div class="date-lbl">Arrival</div><div class="date-val${arrRed?' red':''}">${arrStr}</div></div>` : ''}
         </div>
         ${(boxes||units||ws) ? `<div class="metrics">
@@ -350,17 +350,19 @@ function build(rows) {
           ${units ? `<div class="metric"><div class="metric-lbl">Units</div><div class="metric-val">${esc(units)}</div></div>` : ''}
           ${ws    ? `<div class="metric"><div class="metric-lbl">Wholesale</div><div class="metric-val">${esc(ws)}</div></div>` : ''}
         </div>` : ''}
-        <div class="label-row">
-          <div class="lbl ${al?'done':'pending'}">AL</div>
-          <div class="lbl ${pl?'done':'pending'}">PL</div>
-          <div class="lbl ${fx?'done':'pending'}">FEDEX</div>
+        <div class="bottom-row">
+          <div class="label-row">
+            <div class="lbl ${al?'done':'pending'}">AL</div>
+            <div class="lbl ${pl?'done':'pending'}">PL</div>
+            <div class="lbl ${fx?'done':'pending'}">FEDEX</div>
+          </div>
+          ${awb ? `<div class="awb-row">
+            <a class="awb-link" id="awb-${ri}" href="https://www.google.com/search?q=${encodeURIComponent(awb)}+airway+bill+cargo+tracking" target="_blank" rel="noopener">${esc(awb)}</a>
+            <button class="awb-copy" title="Copy" onclick="navigator.clipboard?.writeText(document.getElementById('awb-${ri}').textContent)">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>` : ''}
         </div>
-        ${awb ? `<div class="awb-row">
-          <a class="awb-link" id="awb-${ri}" href="https://www.google.com/search?q=${encodeURIComponent(awb)}+airway+bill+cargo+tracking" target="_blank" rel="noopener">${esc(awb)}</a>
-          <button class="awb-copy" title="Copy" onclick="navigator.clipboard?.writeText(document.getElementById('awb-${ri}').textContent)">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          </button>
-        </div>` : ''}
       </div>
     </div>`;
   }).join('');
