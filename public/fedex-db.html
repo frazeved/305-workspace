@@ -246,8 +246,7 @@ function build(rows) {
     style:    col(H,'style#','style #','style name','style'),
     shipDate: col(H,'ex-factory','exfactory','ex factory','ship date','shipped date'),
     cancel:   col(H,'cancel date','cancel by','cancel'),
-    fedexTrk: col(H,'fedex tracking','fedex trk','trk#','tracking number','tracking #'),
-    awb:      col(H,'awb','tracking','airway'),
+    fedexTrk: col(H,'tracking number','tracking #','fedex tracking','fedex trk','trk#','awb','airway'),
     fedexSts: col(H,'fedex status','delivery status','fed ex status','fedex delivery'),
   };
 
@@ -270,9 +269,7 @@ function build(rows) {
   // Count by status class for pills
   const counts = {};
   shipped.forEach(r => {
-    const trk = C.fedexTrk >= 0 ? (r[C.fedexTrk]||'').trim() : '';
-    const awb = C.awb      >= 0 ? (r[C.awb]     ||'').trim() : '';
-    const hasTracking = (trk || awb).length > 0;
+    const hasTracking = C.fedexTrk >= 0 && (r[C.fedexTrk]||'').trim().length > 0;
     const raw = C.fedexSts >= 0 ? (r[C.fedexSts]||'').trim() : '';
     const cls = hasTracking ? classifyStatus(raw) : 'notrk';
     counts[cls] = (counts[cls]||0) + 1;
@@ -298,7 +295,7 @@ function build(rows) {
     const style    = get(C.style);
     const shipDate = get(C.shipDate);
     const cancel   = get(C.cancel);
-    const tracking = (C.fedexTrk >= 0 ? get(C.fedexTrk) : '') || get(C.awb);
+    const tracking = C.fedexTrk >= 0 ? get(C.fedexTrk) : '';
     const statusRaw= get(C.fedexSts);
     const hasTracking = tracking.length > 0;
     const sclass   = hasTracking ? classifyStatus(statusRaw) : 'notrk';
