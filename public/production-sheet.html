@@ -12,12 +12,12 @@
       --bg: #f5f6fa; --surface: #fff; --border: #e4e7ed;
       --text: #1a1d23; --text-secondary: #6b7280;
       --accent: #16a34a; --accent-light: #dcfce7;
-      --hdr: #14532d; --row-even: #f0fdf4;
+      --hdr: #14532d; --flt: #1a4731; --row-even: #f0fdf4;
     }
     body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
 
     /* NAV */
-    nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 50; }
+    nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 60; }
     .nav-brand { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; display: none; }
     .nav-brand span { color: var(--accent); }
     .nav-links { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
@@ -32,46 +32,101 @@
     .mode-bar a { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
     .mode-bar a:hover { color: #fff; }
     .toggle-group { display: flex; border-radius: 6px; overflow: hidden; border: 1.5px solid rgba(255,255,255,0.4); }
-    .toggle-btn { background: transparent; border: none; color: rgba(255,255,255,0.75); font-family: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; padding: 5px 14px; cursor: pointer; transition: background 0.15s, color 0.15s; }
+    .toggle-btn { background: transparent; border: none; color: rgba(255,255,255,0.75); font-family: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; padding: 5px 14px; cursor: pointer; transition: background 0.15s; }
     .toggle-btn.active { background: rgba(255,255,255,0.25); color: #fff; }
     .toggle-btn:hover:not(.active) { background: rgba(255,255,255,0.12); color: #fff; }
 
     /* WRAPPER */
-    .sheet-wrapper { flex: 1; padding: 20px 24px 40px; max-width: 1600px; margin: 0 auto; width: 100%; }
+    .sheet-wrapper { flex: 1; padding: 14px 24px 40px; width: 100%; }
 
-    /* STATUS */
-    .status-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    .status-text { font-size: 12px; color: var(--text-secondary); }
-    .btn-reload { display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 6px 12px; font-family: inherit; font-size: 12px; font-weight: 600; color: var(--accent); cursor: pointer; transition: background 0.15s; }
-    .btn-reload:hover { background: var(--accent-light); }
-    .btn-reload svg { transition: transform 0.4s; }
-    .btn-reload.loading svg { animation: spin 0.8s linear infinite; }
+    /* TOOLBAR */
+    .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+    .status-text { font-size: 12px; color: var(--text-secondary); flex: 1; min-width: 120px; }
+
+    .tb-btn { display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 6px 12px; font-family: inherit; font-size: 12px; font-weight: 600; color: var(--text); cursor: pointer; transition: background 0.15s; white-space: nowrap; position: relative; }
+    .tb-btn:hover { background: #f0f0f5; }
+    .tb-btn.green { color: var(--accent); }
+    .tb-btn.green:hover { background: var(--accent-light); }
+    .tb-btn.red { color: #dc2626; background: #fee2e2; border-color: #fca5a5; display: none; }
+    .tb-btn.red.visible { display: flex; }
+    .tb-btn.loading svg { animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* TABLE CARD */
-    .table-card { background: #fff; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-    .table-scroll { overflow-x: auto; }
-
-    table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    thead th {
-      background: var(--hdr); color: #fff;
-      font-size: 11px; font-weight: 600; letter-spacing: 0.4px;
-      padding: 9px 12px; text-align: left;
-      border-right: 1px solid rgba(255,255,255,0.12);
-      white-space: nowrap; position: sticky; top: 0;
+    /* COLUMN PICKER DROPDOWN */
+    .col-picker-wrap { position: relative; }
+    .col-picker-dropdown {
+      display: none; position: absolute; top: calc(100% + 6px); right: 0;
+      background: #fff; border: 1px solid var(--border); border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12); padding: 10px 0;
+      min-width: 200px; max-height: 320px; overflow-y: auto; z-index: 100;
     }
-    thead th:last-child { border-right: none; }
+    .col-picker-dropdown.open { display: block; }
+    .col-picker-hdr { font-size: 10px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.8px; padding: 4px 14px 8px; }
+    .col-picker-item { display: flex; align-items: center; gap: 8px; padding: 5px 14px; cursor: pointer; font-size: 12px; transition: background 0.12s; }
+    .col-picker-item:hover { background: var(--bg); }
+    .col-picker-item input { accent-color: var(--accent); cursor: pointer; }
+    .col-picker-actions { display: flex; gap: 6px; padding: 8px 14px 2px; border-top: 1px solid var(--border); margin-top: 4px; }
+    .col-picker-actions button { flex: 1; font-family: inherit; font-size: 11px; font-weight: 600; padding: 4px 0; border-radius: 5px; cursor: pointer; border: 1px solid var(--border); background: var(--bg); color: var(--text-secondary); transition: background 0.12s; }
+    .col-picker-actions button:hover { background: var(--surface); }
+
+    /* SLICERS */
+    .slicers-wrap { margin-bottom: 10px; display: none; }
+    .slicers-wrap.visible { display: block; }
+    .slicer-row { display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+    .slicer { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; min-width: 160px; }
+    .slicer-label { font-size: 10px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; }
+    .slicer-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+    .slicer-chip { font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg); color: var(--text-secondary); cursor: pointer; transition: all 0.12s; white-space: nowrap; }
+    .slicer-chip:hover { background: var(--accent-light); border-color: #6ee7b7; color: #065f46; }
+    .slicer-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* TABLE */
+    .table-card { background: #fff; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .table-scroll { overflow-x: auto; max-height: calc(100vh - 240px); overflow-y: auto; }
+    table { border-collapse: collapse; font-size: 12px; table-layout: fixed; width: max-content; min-width: 100%; }
+
+    thead tr.hdr-row th {
+      background: var(--hdr); color: #fff;
+      font-size: 11px; font-weight: 600; letter-spacing: 0.3px;
+      padding: 8px 10px; text-align: left;
+      border-right: 1px solid rgba(255,255,255,0.1);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      position: sticky; top: 0; z-index: 3;
+      width: 120px; min-width: 60px;
+    }
+    thead tr.hdr-row th:last-child { border-right: none; }
+    thead tr.flt-row th {
+      background: var(--flt); padding: 4px 5px;
+      border-right: 1px solid rgba(255,255,255,0.08);
+      position: sticky; top: 33px; z-index: 3;
+    }
+    thead tr.flt-row th:last-child { border-right: none; }
+    .col-filter {
+      width: 100%; font-family: inherit; font-size: 11px;
+      background: rgba(255,255,255,0.1); color: #fff;
+      border: 1px solid rgba(255,255,255,0.18); border-radius: 3px;
+      padding: 3px 4px; outline: none; cursor: pointer; max-width: 110px;
+    }
+    .col-filter option { background: #1a1d23; color: #fff; }
+    .col-filter.active { background: rgba(134,239,172,0.3); border-color: #86efac; }
+
+    tbody tr { transition: background 0.08s; }
     tbody tr:nth-child(even) { background: var(--row-even); }
     tbody tr:hover { background: #bbf7d0; }
-    tbody td { padding: 7px 12px; border-right: 1px solid #e9f5ee; border-bottom: 1px solid #e9f5ee; color: var(--text); white-space: nowrap; }
+    tbody tr.hidden { display: none; }
+    tbody td {
+      padding: 5px 10px; border-right: 1px solid #e9f5ee; border-bottom: 1px solid #e9f5ee;
+      color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      width: 120px; min-width: 60px;
+    }
     tbody td:last-child { border-right: none; }
 
-    /* LOADING / ERROR */
+    /* hidden column */
+    .col-hidden { display: none !important; }
+
     .msg-box { padding: 60px 24px; text-align: center; color: var(--text-secondary); font-size: 13px; }
-    .msg-box .icon { font-size: 32px; margin-bottom: 12px; }
     .spinner-ring { width: 36px; height: 36px; border: 3px solid #e4e7ed; border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 12px; }
 
-    /* RESPONSIVE */
     @media (max-width: 768px) {
       nav { padding: 0 16px; height: auto; min-height: 52px; position: relative; }
       .nav-brand { display: block; }
@@ -80,7 +135,7 @@
       .nav-links.open { display: flex; }
       .nav-link { padding: 10px 20px; border-radius: 0; font-size: 13px; }
       .mode-bar { padding: 10px 16px; flex-wrap: wrap; gap: 8px; }
-      .sheet-wrapper { padding: 16px 12px 40px; }
+      .sheet-wrapper { padding: 10px 8px 40px; }
     }
   </style>
 </head>
@@ -116,13 +171,41 @@
 </div>
 
 <div class="sheet-wrapper">
-  <div class="status-bar">
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
     <span class="status-text" id="status-text">Loading…</span>
-    <button class="btn-reload" id="reload-btn" onclick="loadData()">
+
+    <!-- Column picker -->
+    <div class="col-picker-wrap" id="col-picker-wrap">
+      <button class="tb-btn" onclick="toggleColPicker()" id="col-picker-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+        Columns
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="col-picker-dropdown" id="col-picker-dropdown">
+        <div class="col-picker-hdr">Show / hide columns</div>
+        <div id="col-picker-list"></div>
+        <div class="col-picker-actions">
+          <button onclick="setAllCols(true)">Show all</button>
+          <button onclick="setAllCols(false)">Hide all</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="tb-btn red" id="btn-clear-all" onclick="clearAllFilters()">✕ Clear filters</button>
+    <button class="tb-btn green" id="reload-btn" onclick="loadData()">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
       Refresh
     </button>
   </div>
+
+  <!-- SLICERS -->
+  <div class="slicers-wrap" id="slicers-wrap">
+    <div class="slicer-row" id="slicer-row"></div>
+  </div>
+
+  <!-- TABLE -->
   <div class="table-card">
     <div class="table-scroll" id="table-area">
       <div class="msg-box"><div class="spinner-ring"></div>Fetching sheet data…</div>
@@ -137,16 +220,15 @@ const SHEET_ID = '1y0iL7PJldbVQmPIAnJi9wvA2hvjB8_aK2bU2kxvUf5Q';
 const GID      = '0';
 const CSV_URL  = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`;
 const EDIT_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit?gid=${GID}`;
+const MAX_SLICER_VALS = 12;
+
+let state = { headers: [], data: [], filters: {}, hiddenCols: new Set(), lastUpdated: '' };
 
 function setMode(mode) {
-  if (mode === 'edit') {
-    window.open(EDIT_URL, '_blank');
-    return;
-  }
-  document.getElementById('btn-view').classList.add('active');
-  document.getElementById('btn-edit').classList.remove('active');
+  if (mode === 'edit') { window.open(EDIT_URL, '_blank'); return; }
 }
 
+// ── CSV PARSER ──────────────────────────────────────────────────────────────
 function parseCSV(text) {
   const rows = [];
   let row = [], field = '', inQ = false;
@@ -154,62 +236,210 @@ function parseCSV(text) {
     const c = text[i];
     if (inQ) {
       if (c === '"' && text[i+1] === '"') { field += '"'; i++; }
-      else if (c === '"') { inQ = false; }
-      else { field += c; }
+      else if (c === '"') inQ = false;
+      else field += c;
     } else {
-      if (c === '"') { inQ = true; }
+      if (c === '"') inQ = true;
       else if (c === ',') { row.push(field); field = ''; }
       else if (c === '\n' || (c === '\r' && text[i+1] === '\n')) {
         if (c === '\r') i++;
         row.push(field); field = '';
         if (row.some(f => f.trim())) rows.push(row);
         row = [];
-      } else { field += c; }
+      } else field += c;
     }
   }
-  if (field || row.length) { row.push(field); if (row.some(f => f.trim())) rows.push(row); }
+  if (row.length) { row.push(field); if (row.some(f => f.trim())) rows.push(row); }
   return rows;
 }
 
-function escapeHTML(s) {
+function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-async function loadData() {
-  const area   = document.getElementById('table-area');
-  const status = document.getElementById('status-text');
-  const btn    = document.getElementById('reload-btn');
+// ── FILTER LOGIC ────────────────────────────────────────────────────────────
+function applyFilters() {
+  const tbody = document.getElementById('data-body');
+  if (!tbody) return;
+  const rows = tbody.querySelectorAll('tr');
+  let visible = 0;
+  rows.forEach(tr => {
+    const cells = tr.querySelectorAll('td');
+    let show = true;
+    Object.entries(state.filters).forEach(([col, val]) => {
+      if (!val) return;
+      const raw = cells[+col]?.getAttribute('data-raw') ?? '';
+      if (raw !== val) show = false;
+    });
+    tr.classList.toggle('hidden', !show);
+    if (show) visible++;
+  });
+  document.getElementById('status-text').textContent =
+    `${visible} of ${state.data.length} rows · ${state.lastUpdated}`;
+  // update filter row dropdowns
+  document.querySelectorAll('.col-filter').forEach(s => {
+    s.classList.toggle('active', !!(state.filters[s.dataset.col]));
+  });
+  // update slicer chips
+  document.querySelectorAll('.slicer-chip').forEach(chip => {
+    chip.classList.toggle('active',
+      state.filters[chip.dataset.col] === chip.dataset.val);
+  });
+  // show/hide clear button
+  const anyActive = Object.values(state.filters).some(Boolean);
+  document.getElementById('btn-clear-all').classList.toggle('visible', anyActive);
+}
 
+function setFilter(col, val) {
+  state.filters[col] = val;
+  // sync dropdown in filter row
+  const sel = document.querySelector(`.col-filter[data-col="${col}"]`);
+  if (sel) sel.value = val;
+  applyFilters();
+}
+
+function clearAllFilters() {
+  state.filters = {};
+  document.querySelectorAll('.col-filter').forEach(s => s.value = '');
+  document.querySelectorAll('.slicer-chip').forEach(c => c.classList.remove('active'));
+  applyFilters();
+}
+
+// ── SLICER CLICK ────────────────────────────────────────────────────────────
+function onSlicerChip(col, val) {
+  const current = state.filters[col];
+  setFilter(col, current === val ? '' : val);   // toggle off if same
+}
+
+// ── COLUMN VISIBILITY ───────────────────────────────────────────────────────
+function applyColVisibility() {
+  const { headers, hiddenCols } = state;
+  headers.forEach((_, ci) => {
+    const hidden = hiddenCols.has(ci);
+    document.querySelectorAll(`.c${ci}`).forEach(el => {
+      el.classList.toggle('col-hidden', hidden);
+    });
+  });
+}
+
+function toggleCol(ci) {
+  if (state.hiddenCols.has(ci)) state.hiddenCols.delete(ci);
+  else state.hiddenCols.add(ci);
+  applyColVisibility();
+}
+
+function setAllCols(show) {
+  state.hiddenCols = show ? new Set() : new Set(state.headers.map((_,i)=>i));
+  document.querySelectorAll('#col-picker-list input[type=checkbox]').forEach(cb => {
+    cb.checked = show;
+  });
+  applyColVisibility();
+}
+
+function toggleColPicker() {
+  document.getElementById('col-picker-dropdown').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!document.getElementById('col-picker-wrap').contains(e.target)) {
+    document.getElementById('col-picker-dropdown').classList.remove('open');
+  }
+});
+
+// ── BUILD TABLE ─────────────────────────────────────────────────────────────
+function buildTable(headers, data) {
+  state.headers = headers;
+  state.data    = data;
+  state.filters = {};
+  state.hiddenCols = new Set();
+
+  const colUniq = headers.map((_, ci) =>
+    [...new Set(data.map(r => (r[ci]||'').trim()))].filter(Boolean).sort()
+  );
+
+  // Column picker list
+  document.getElementById('col-picker-list').innerHTML = headers.map((h, ci) =>
+    `<label class="col-picker-item">
+      <input type="checkbox" checked onchange="toggleCol(${ci})" />
+      ${esc(h)}
+    </label>`
+  ).join('');
+
+  // Slicers: columns with ≤ MAX_SLICER_VALS unique values
+  const slicerCols = headers.reduce((acc, h, ci) => {
+    if (colUniq[ci].length >= 2 && colUniq[ci].length <= MAX_SLICER_VALS) acc.push(ci);
+    return acc;
+  }, []);
+
+  const slicerRow = document.getElementById('slicer-row');
+  if (slicerCols.length) {
+    slicerRow.innerHTML = slicerCols.map(ci =>
+      `<div class="slicer">
+        <div class="slicer-label">${esc(headers[ci])}</div>
+        <div class="slicer-chips">
+          ${colUniq[ci].map(v =>
+            `<span class="slicer-chip" data-col="${ci}" data-val="${esc(v)}" onclick="onSlicerChip(${ci},'${esc(v)}')">${esc(v)}</span>`
+          ).join('')}
+        </div>
+      </div>`
+    ).join('');
+    document.getElementById('slicers-wrap').classList.add('visible');
+  } else {
+    document.getElementById('slicers-wrap').classList.remove('visible');
+  }
+
+  // Table HTML
+  let html = '<table>';
+  // header
+  html += '<thead><tr class="hdr-row">';
+  headers.forEach((h, ci) => { html += `<th class="c${ci}" title="${esc(h)}">${esc(h)}</th>`; });
+  html += '</tr>';
+  // filter row
+  html += '<tr class="flt-row">';
+  headers.forEach((_, ci) => {
+    html += `<th class="c${ci}"><select class="col-filter" data-col="${ci}" onchange="setFilter(${ci},this.value)">`;
+    html += `<option value="">All</option>`;
+    colUniq[ci].forEach(v => { html += `<option value="${esc(v)}">${esc(v)}</option>`; });
+    html += `</select></th>`;
+  });
+  html += '</tr></thead>';
+  // body
+  html += '<tbody id="data-body">';
+  data.forEach(r => {
+    html += '<tr>';
+    headers.forEach((_, ci) => {
+      const raw = (r[ci] ?? '').trim();
+      html += `<td class="c${ci}" data-raw="${esc(raw)}" title="${esc(raw)}">${esc(raw)}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+
+  document.getElementById('table-area').innerHTML = html;
+}
+
+// ── LOAD DATA ───────────────────────────────────────────────────────────────
+async function loadData() {
+  const area = document.getElementById('table-area');
+  const btn  = document.getElementById('reload-btn');
   area.innerHTML = '<div class="msg-box"><div class="spinner-ring"></div>Fetching sheet data…</div>';
-  status.textContent = 'Loading…';
+  document.getElementById('status-text').textContent = 'Loading…';
+  document.getElementById('slicers-wrap').classList.remove('visible');
   btn.classList.add('loading');
 
   try {
     const res = await fetch(CSV_URL);
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const csv  = await res.text();
-    const rows = parseCSV(csv);
-
+    const rows = parseCSV(await res.text());
     if (!rows.length) throw new Error('No data');
 
-    const headers = rows[0];
-    const data    = rows.slice(1);
-
-    let html = '<table><thead><tr>';
-    headers.forEach(h => { html += `<th>${escapeHTML(h)}</th>`; });
-    html += '</tr></thead><tbody>';
-    data.forEach(r => {
-      html += '<tr>';
-      headers.forEach((_, i) => { html += `<td>${escapeHTML(r[i] ?? '')}</td>`; });
-      html += '</tr>';
-    });
-    html += '</tbody></table>';
-
-    area.innerHTML = html;
-    status.textContent = `${data.length} rows · last updated ${new Date().toLocaleTimeString()}`;
+    state.lastUpdated = 'updated ' + new Date().toLocaleTimeString();
+    buildTable(rows[0], rows.slice(1));
+    document.getElementById('status-text').textContent =
+      `${rows.length - 1} rows · ${state.lastUpdated}`;
   } catch(e) {
-    area.innerHTML = `<div class="msg-box"><div class="icon">⚠️</div>Could not load sheet data.<br><small style="color:#9ca3af">Make sure the spreadsheet is shared (Anyone with link can view).<br>${e.message}</small></div>`;
-    status.textContent = 'Error loading data';
+    area.innerHTML = `<div class="msg-box"><div class="icon">⚠️</div>Could not load sheet data.<br>
+      <small style="color:#9ca3af">Make sure the spreadsheet is shared (Anyone with link can view).<br>${esc(e.message)}</small></div>`;
+    document.getElementById('status-text').textContent = 'Error loading data';
   }
   btn.classList.remove('loading');
 }
