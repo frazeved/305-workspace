@@ -76,6 +76,9 @@
     .btn-database { background: #ede9fe; color: #6d28d9; border: 1px solid #c4b5fd; border-radius: 8px; padding: 8px 18px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: not-allowed; display: flex; align-items: center; gap: 7px; }
     .toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: #fff; font-size: 13px; font-weight: 500; padding: 10px 16px; border-radius: 8px; opacity: 0; transform: translateY(8px); transition: all 0.2s; pointer-events: none; z-index: 100; }
     .toast.show { opacity: 1; transform: translateY(0); }
+    a.card { text-decoration: none; color: inherit; opacity: 1; transition: box-shadow 0.15s, transform 0.15s; }
+    a.card:hover { box-shadow: 0 4px 18px rgba(0,0,0,0.1); transform: translateY(-2px); }
+    .sheet-card { border-top: 3px solid var(--accent); }
     .nav-hamburger { display: none; background: none; border: none; cursor: pointer; padding: 6px 8px; color: var(--text-secondary); line-height: 1; }
     .nav-hamburger:hover { color: var(--text); }
     @media (max-width: 768px) {
@@ -161,6 +164,28 @@
         <span class="soon-label">Coming Soon</span>
       </button>
       <button class="btn-database" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg><span>Database</span><span class="soon-label">Coming Soon</span></button>
+      </div>
+    </div>
+
+    <!-- WAREHOUSE DATABASE LINK -->
+    <div class="task-group">
+      <div class="task-group-label">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>
+        Warehouse Data
+      </div>
+      <div class="grid">
+        <a class="card sheet-card" href="warehouse-db.html">
+          <div class="card-icon-row">
+            <div class="icon-tool" style="border-radius:50%; background:#0d9488;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <div>
+              <div class="card-name">WAREHOUSE DASHBOARD</div>
+              <div class="card-type">PO Status · Tracking · Transit</div>
+            </div>
+            <svg style="margin-left:auto; color:#0d9488;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </a>
       </div>
     </div>
 
