@@ -343,17 +343,16 @@ async function loadData() {
     const H = raw[0];
     const data = raw.slice(1);
 
+    // Columns A-E are fixed positions. Tracking/Delivery are far right — find by name.
     const C = {
-      style:    colIdx(H, 'style #', 'style#', 'style'),
-      po:       colIdx(H, 'po#', 'po #', 'po', 'purchase order', 'order#', 'order #'),
-      status:   colIdx(H, 'status'),
-      shipDate: colIdx(H, 'ship date tradestone', 'ship date', 'ex-factory', 'exfactory'),
-      cancel:   colIdx(H, 'cancel date', 'cancel'),
-      tracking: colIdx(H, 'tracking number', 'tracking#', 'tracking'),
+      style:    0,
+      po:       1,
+      status:   2,
+      shipDate: 3,
+      cancel:   4,
+      tracking: colIdx(H, 'tracking number', 'tracking#', 'tracking', 'awb'),
       delivery: colIdx(H, 'delivery status', 'delivery'),
     };
-    console.log('Headers (first 10):', H.slice(0,10));
-    console.log('Column indices:', C);
 
     const get = (r,i) => i>=0 ? (r[i]||'').trim() : '';
 
