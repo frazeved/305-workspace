@@ -158,6 +158,8 @@
     </button>
   </div>
 
+  <div id="raw-debug" style="font-size:11px;font-family:monospace;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;margin-bottom:12px;display:none;line-height:1.8;overflow-x:auto;white-space:nowrap"></div>
+
   <div class="table-wrap">
     <div class="table-scroll">
       <table id="data-table">
@@ -353,6 +355,15 @@ async function loadData() {
       tracking: colIdx(H, 'tracking number', 'tracking#', 'tracking', 'awb'),
       delivery: colIdx(H, 'delivery status', 'delivery'),
     };
+
+    // Visible debug — shows exactly what the CSV is delivering
+    const dbg = document.getElementById('raw-debug');
+    const firstRow = data[0] || [];
+    dbg.style.display = 'block';
+    dbg.innerHTML =
+      '<b>CSV Headers [0-5]:</b> ' + H.slice(0,6).map((h,i)=>`[${i}]&nbsp;<b>${esc(h)||'(empty)'}</b>`).join(' &nbsp;|&nbsp; ') +
+      '<br><b>First data row [0-5]:</b> ' + firstRow.slice(0,6).map((v,i)=>`[${i}]&nbsp;<b>${esc(v)||'(empty)'}</b>`).join(' &nbsp;|&nbsp; ') +
+      `<br><b>Cols detected:</b> tracking=${C.tracking} delivery=${C.delivery}`;
 
     const get = (r,i) => i>=0 ? (r[i]||'').trim() : '';
 
