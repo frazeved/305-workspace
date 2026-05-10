@@ -245,10 +245,10 @@ async function loadSheet() {
     const rows = parseCSV(await res.text());
     if (rows.length < 2) throw new Error('No data');
 
-    const H = rows[0].map(h => h.trim());
+    const H = rows[0].map(h => h.trim().replace(/^﻿/, ''));
     const CI = {
       style:  findCol(H, 'style #', 'style#'),
-      po:     findCol(H, 'po#', 'po ', 'purchase order'),
+      po:     findCol(H, 'po#', 'po #'),
       status: findCol(H, 'warehouse status', 'wh status', 'status'),
       ship:   findCol(H, 'ship date tradestone', 'ship date'),
       cancel: findCol(H, 'cancel date'),

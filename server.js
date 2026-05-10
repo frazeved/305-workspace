@@ -175,10 +175,10 @@ app.post('/api/fedex-status', async (req, res) => {
     const rows = parseCSV(await csvRes.text());
     if (rows.length < 2) throw new Error('Sheet has no data');
 
-    const H = rows[0].map(h => h.trim());
+    const H = rows[0].map(h => h.trim().replace(/^﻿/, ''));
     const CI = {
       style:  findCol(H, 'style #', 'style#'),
-      po:     findCol(H, 'po#', 'po ', 'purchase order'),
+      po:     findCol(H, 'po#', 'po #'),
       status: findCol(H, 'warehouse status', 'wh status', 'status'),
       ship:   findCol(H, 'ship date tradestone', 'ship date'),
       cancel: findCol(H, 'cancel date'),
