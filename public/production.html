@@ -377,15 +377,6 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">HS FA</label>
-        <select name="hsfa" class="form-select">
-          <option></option>
-          <option>HS FA 1</option>
-          <option>HS FA 2</option>
-        </select>
-      </div>
-
-      <div class="form-group">
         <label class="form-label">Category</label>
         <input type="text" name="category" class="form-input" />
       </div>
@@ -428,12 +419,12 @@
 
       <div class="form-group">
         <label class="form-label">Top Deadline</label>
-        <input type="date" name="topDeadline" class="form-input" />
+        <input type="date" name="topDeadline" class="form-input" onchange="updateTopDeadlineDays()" />
       </div>
 
       <div class="form-group">
         <label class="form-label">Top Deadline Days</label>
-        <input type="number" name="topDeadlineDays" class="form-input" />
+        <div id="topDeadlineDays-display" class="form-input" style="background:#f9fafb; color:#6b7280; cursor:default;">—</div>
       </div>
 
       <div class="form-group">
@@ -482,6 +473,18 @@
 <script>
 function toggleNav() { document.getElementById('nav-links').classList.toggle('open'); }
 function toggleChat() { document.getElementById('chat-panel').classList.toggle('open'); }
+
+function updateTopDeadlineDays() {
+  const input = document.querySelector('#po-breakdown-modal [name="topDeadline"]');
+  const display = document.getElementById('topDeadlineDays-display');
+  if (!input?.value) { display.textContent = '—'; return; }
+  const deadline = new Date(input.value);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  deadline.setHours(0, 0, 0, 0);
+  const days = Math.round((today - deadline) / 86400000);
+  display.textContent = days === 0 ? 'Today' : `${Math.abs(days)} Days`;
+}
 
 function openModal(modalId) {
   document.getElementById(modalId).classList.add('open');
@@ -563,6 +566,7 @@ async function breakdownSearch() {
     setField('freight', data.freight);
     setField('duty', data.duty);
     setField('hts', data.hts);
+    updateTopDeadlineDays();
 
     showToast('PO data loaded successfully');
 
