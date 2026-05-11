@@ -78,7 +78,7 @@ app.post('/api/run-all', async (req, res) => {
   }
 });
 
-app.post('/api/run-jhonny', async (req, res) => {
+async function triggerJhonnyUpdate(req, res) {
   try {
     const r = await ghFetch(`https://api.github.com/repos/frazeved/JHONNY/actions/workflows/update-fedex-status.yml/dispatches`, {
       method: 'POST',
@@ -92,7 +92,10 @@ app.post('/api/run-jhonny', async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
-});
+}
+
+app.post('/api/run-jhonny', triggerJhonnyUpdate);
+app.post('/api/fedex/update', triggerJhonnyUpdate);
 
 app.post('/api/contact', async (req, res) => {
   const { name, email, message } = req.body;

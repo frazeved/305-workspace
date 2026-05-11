@@ -156,6 +156,10 @@
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
       Refresh
     </button>
+    <button class="tb-btn" id="update-fedex-btn" onclick="runFedExUpdate()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      Update FedEx
+    </button>
   </div>
 
   <div class="table-wrap">
@@ -259,6 +263,27 @@ function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'), 2000);
+}
+
+async function runFedExUpdate() {
+  const btn = document.getElementById('update-fedex-btn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+  showToast('Triggering FedEx update...');
+  try {
+    const res = await fetch('/api/fedex/update', { method: 'POST' });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(res.status + ' ' + body);
+    }
+    showToast('FedEx update triggered. Refresh once complete.');
+  } catch (err) {
+    showToast('Update failed: ' + err.message);
+    console.error('FedEx update error:', err);
+  } finally {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
 }
 
 function renderRows(filter) {
