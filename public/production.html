@@ -367,7 +367,7 @@
         <label class="form-label">Style #</label>
         <div class="form-row">
           <input type="text" class="form-input" />
-          <button type="button" class="btn-search">Search</button>
+          <button type="button" class="btn-search" onclick="breakdownSearch()">Search</button>
         </div>
       </div>
 
@@ -495,6 +495,91 @@ function closeModalOnOverlay(event) {
   if (event.target.classList.contains('modal-overlay')) {
     event.target.classList.remove('open');
   }
+}
+
+async function breakdownSearch() {
+  const styleInput = document.querySelector('#po-breakdown-modal input[type="text"]');
+  const style = styleInput.value.trim();
+  
+  if (!style) {
+    showToast('Please enter a Style #');
+    return;
+  }
+
+  const btn = document.querySelector('#po-breakdown-modal .btn-search');
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Searching...';
+
+  try {
+    const response = await fetch('/api/po/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ style })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      showToast(data.error || 'Search failed');
+      return;
+    }
+
+    // Populate form fields
+    const form = document.querySelector('#po-breakdown-modal form');
+    
+    // Helper function to set field value
+    const setField = (name, value) => {
+      const field = form.querySelector(`[name="${name}"]`);
+      if (field) {
+        if (field.type === 'date' && value) {
+          // Convert to YYYY-MM-DD format for date inputs
+          try {
+            const date = new Date(value);
+            if (!isNaN(date)) {
+              field.value = date.toISOString().split('T')[0];
+            }
+          } catch (e) {
+            field.value = value;
+          }
+        } else {
+          field.value = value;
+        }
+      }
+    };
+
+    setField('supplier', data.supplier);
+    setField('category', data.category);
+    setField('subcategory', data.subcategory);
+    setField('piReceived', data.piReceived);
+    setField('topSent', data.topSent);
+    setField('topSampleStatus', data.topSampleStatus);
+    setField('basePo', data.basePo);
+    setField('finalNDC', data.finalNDC);
+    setField('topDeadline', data.topDeadline);
+    setField('topDeadlineDays', data.topDeadlineDays);
+    setField('exFactory', data.exFactory);
+    setField('cost', data.cost);
+    setField('freight', data.freight);
+    setField('duty', data.duty);
+    setField('hts', data.hts);
+
+    showToast('PO data loaded successfully');
+
+  } catch (error) {
+    console.error('Search error:', error);
+    showToast('Search failed. Please try again.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+}
+
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
 async function sendChat() {
