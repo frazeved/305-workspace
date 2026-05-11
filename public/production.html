@@ -367,6 +367,14 @@
 
     <form class="form-grid">
 
+      <!-- Row 0: Sending As — full width -->
+      <div class="form-group form-full">
+        <label class="form-label">Sending As</label>
+        <select name="sendingAs" class="form-select" id="sendingAs-select">
+          <option value="">— Select your name —</option>
+        </select>
+      </div>
+
       <!-- Row 1: Style search — full width -->
       <div class="form-group form-full">
         <label class="form-label">Style #</label>
@@ -464,7 +472,7 @@
       <!-- Row 8: Message -->
       <div class="form-group form-full">
         <label class="form-label">Message</label>
-        <textarea class="form-textarea" rows="2"></textarea>
+        <textarea class="form-textarea" name="message" rows="2"></textarea>
       </div>
 
       <div class="form-actions form-full">
@@ -491,8 +499,29 @@ function updateTopDeadlineDays() {
   display.textContent = days === 0 ? 'Today' : `${Math.abs(days)} Days`;
 }
 
-function openModal(modalId) {
+async function openModal(modalId) {
   document.getElementById(modalId).classList.add('open');
+  if (modalId === 'po-breakdown-modal') {
+    await loadSendingAsUsers();
+  }
+}
+
+async function loadSendingAsUsers() {
+  const sel = document.getElementById('sendingAs-select');
+  try {
+    const users = await fetch('/api/users').then(r => r.json());
+    const current = sel.value;
+    sel.innerHTML = '<option value="">— Select your name —</option>';
+    users.forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u.id;
+      opt.textContent = u.connected ? `${u.name} ✓` : u.name;
+      opt.disabled = !u.connected;
+      opt.style.color = u.connected ? '#166534' : '#9ca3af';
+      if (u.id === current) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  } catch (_) {}
 }
 
 function closeModal(modalId) {
@@ -593,6 +622,7 @@ document.querySelector('#po-breakdown-modal form').addEventListener('submit', as
 
   const g = name => (this.querySelector(`[name="${name}"]`)?.value || '').trim();
   const body = {
+    sendingAs:       g('sendingAs'),
     style:           g('style'),
     supplier:        g('supplier'),
     category:        g('category'),
@@ -608,9 +638,10 @@ document.querySelector('#po-breakdown-modal form').addEventListener('submit', as
     freight:         g('freight'),
     duty:            g('duty'),
     hts:             g('hts'),
-    message:         (this.querySelector('textarea')?.value || '').trim(),
+    message:         g('message'),
   };
 
+  if (!body.sendingAs) { showToast('Please select who is sending this'); btn.disabled = false; btn.textContent = orig; return; }
   if (!body.style)    { showToast('Style # is required');  btn.disabled = false; btn.textContent = orig; return; }
   if (!body.supplier) { showToast('Supplier is required'); btn.disabled = false; btn.textContent = orig; return; }
 
@@ -622,7 +653,7 @@ document.querySelector('#po-breakdown-modal form').addEventListener('submit', as
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to send');
-    showToast('Breakdown email sent!');
+    showToast('Draft created in Gmail!');
     closeModal('po-breakdown-modal');
   } catch (err) {
     showToast('Error: ' + err.message);
