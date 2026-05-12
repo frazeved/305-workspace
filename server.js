@@ -650,24 +650,20 @@ app.post('/api/gabriel/map-sync', async (req, res) => {
     const auth   = new google.auth.GoogleAuth({ credentials: sa, scopes: ['https://www.googleapis.com/auth/spreadsheets'] });
     const sheets = google.sheets({ version: 'v4', auth });
 
-    const readTab = async (tab) => {
-      const r = await sheets.spreadsheets.values.get({
-        spreadsheetId: SHEET_ID,
-        range: `'${tab}'`,
-        valueRenderOption: 'UNFORMATTED_VALUE',
-        dateTimeRenderOption: 'FORMATTED_STRING',
-      });
-      return r.data.values || [];
-    };
-
-    // Read all source sheets in parallel
-    const [sourceData, targetData, tsData, pdData, ptData] = await Promise.all([
-      readTab('Production & PO DataBase'),
-      readTab('ANTHRO MAP 2026'),
-      readTab('TRADESTONE DATABASE'),
-      readTab('PO DETAIL'),
-      readTab('PO TRADE'),
-    ]);
+    // ONE batchGet call for all 5 sheets
+    const batch = await sheets.spreadsheets.values.batchGet({
+      spreadsheetId: SHEET_ID,
+      ranges: [
+        "'ANTHRO MAP 2026'",
+        "'TRADESTONE DATABASE'",
+        "'PO DETAIL'",
+        "'PO TRADE'",
+        "'Production & PO DataBase'",
+      ],
+      valueRenderOption: 'UNFORMATTED_VALUE',
+      dateTimeRenderOption: 'FORMATTED_STRING',
+    });
+    const [targetData, tsData, pdData, ptData, sourceData] = batch.data.valueRanges.map(vr => vr.values || []);
 
     const srcH  = sourceData[0] || [];
     const tgtH  = targetData[0] || [];
@@ -713,31 +709,11 @@ app.post('/api/gabriel/map-sync', async (req, res) => {
       styleMap[String(style).trim()] = entry;
     }
 
-    let pass1 = 0;
-    const mapRows = targetData.slice(1).map(rawRow => {
-      const row   = [...rawRow];
-      const style = row[tgtStyleCol];
-      if (!style) return row;
-      const match = styleMap[String(style).trim()];
-      if (!match) return row;
-      for (const c of allCols) {
-        const ti  = tgtCI[c];
-        const cur = row[ti];
-        const nv  = match[c];
-        const blank = cur === '' || cur === null || cur === undefined;
-        if ((alwaysWrite.includes(c) || (onlyIfBlank.includes(c) && blank)) && nv !== undefined) row[ti] = nv;
-      }
-      const subBlank = row[tgtSubCat] === '' || row[tgtSubCat] === null || row[tgtSubCat] === undefined;
-      if (subBlank && match['SUB-CATEGORY'] !== undefined) row[tgtSubCat] = match['SUB-CATEGORY'];
-      pass1++;
-      return row;
-    });
-
-    // ── PASS 2: updateFromTradestone ────────────────────────────────────────
-    // Pre-compute every index once — never scan headers inside the row loop
+    // ── All column indices pre-computed once ───────────────────────────────
     const poCol = smartIdx(tgtH, 'Purchase Order', 'PO#', 'PO');
     const tsPO  = smartIdx(tsH,  'Purchase Order', 'PO#', 'PO');
     const pdPO  = smartIdx(pdH,  'Purchase Order', 'PO#', 'PO');
+    const tsNorm = tsH.map(h => h.toString().trim().toLowerCase());
 
     const tgt = {
       period:        idx(tgtH, 'PERIOD'),
@@ -757,6 +733,72 @@ app.post('/api/gabriel/map-sync', async (req, res) => {
       fobPrice:      idx(tgtH, 'FOB Price'),
       channel:       idx(tgtH, 'CHANNEL'),
     };
+
+    // ── STEP 1: new PO discovery ────────────────────────────────────────────
+    const ts_style  = tsNorm.indexOf('vendor style #');
+    const ts_po     = tsNorm.indexOf('po#');
+    const ts_qty    = tsNorm.indexOf('total qty');
+    const ts_wsp    = tsNorm.indexOf('po wholesale');
+    const ts_fob    = tsNorm.indexOf('total fob');
+    const ts_ship   = tsNorm.indexOf('ship date');
+    const ts_cancel = tsNorm.indexOf('cancel date');
+    const ts_status = tsNorm.indexOf('urbn status');
+
+    const existingPOs = new Set(
+      targetData.slice(1).map(r => String(r[poCol] || '').trim()).filter(Boolean)
+    );
+
+    const emptyRow = Array(tgtH.length).fill('');
+    const newRows  = [];
+
+    for (let i = 1; i < tsData.length; i++) {
+      const r      = tsData[i];
+      const status = String(r[ts_status] || '').toUpperCase();
+      if (status.includes('CANCEL')) continue;
+
+      const po = String(r[ts_po] || '').trim();
+      if (!po || existingPOs.has(po)) continue;
+
+      const cancelStr  = typeof r[ts_cancel] === 'string' ? r[ts_cancel] : '';
+      const cancelYear = cancelStr ? new Date(cancelStr).getFullYear() : 0;
+      if (cancelYear !== 2026) continue;
+
+      const row = [...emptyRow];
+      if (tgtStyleCol    >= 0) row[tgtStyleCol]    = r[ts_style]  || '';
+      if (poCol          >= 0) row[poCol]           = po;
+      if (tgt.totalQty   >= 0) row[tgt.totalQty]   = r[ts_qty]   || '';
+      if (tgt.wholesale  >= 0) row[tgt.wholesale]   = r[ts_wsp]  || r[ts_fob] || '';
+      if (tgt.shipDate   >= 0) row[tgt.shipDate]    = r[ts_ship]  || '';
+      if (tgt.cancelDate >= 0) row[tgt.cancelDate]  = r[ts_cancel]|| '';
+      newRows.push(row);
+      existingPOs.add(po);
+    }
+
+    newRows.sort((a, b) =>
+      String(a[tgtStyleCol]).localeCompare(String(b[tgtStyleCol])) ||
+      String(a[poCol]).localeCompare(String(b[poCol]))
+    );
+
+    // ── STEP 2+3: update existing rows ─────────────────────────────────────
+    let pass1 = 0;
+    const mapRows = targetData.slice(1).map(rawRow => {
+      const row   = [...rawRow];
+      const style = row[tgtStyleCol];
+      if (!style) return row;
+      const match = styleMap[String(style).trim()];
+      if (!match) return row;
+      for (const c of allCols) {
+        const ti    = tgtCI[c];
+        const cur   = row[ti];
+        const nv    = match[c];
+        const blank = cur === '' || cur === null || cur === undefined;
+        if ((alwaysWrite.includes(c) || (onlyIfBlank.includes(c) && blank)) && nv !== undefined) row[ti] = nv;
+      }
+      const subBlank = row[tgtSubCat] === '' || row[tgtSubCat] === null || row[tgtSubCat] === undefined;
+      if (subBlank && match['SUB-CATEGORY'] !== undefined) row[tgtSubCat] = match['SUB-CATEGORY'];
+      pass1++;
+      return row;
+    });
 
     const ts_ = {
       period:       smartIdx(tsH, 'PERIOD'),
@@ -816,15 +858,27 @@ app.post('/api/gabriel/map-sync', async (req, res) => {
       if (ptMap.has(po) && tgt.channel >= 0) row[tgt.channel] = ptMap.get(po);
     }
 
-    // Write both passes back in one call
-    await sheets.spreadsheets.values.update({
-      spreadsheetId: SHEET_ID,
-      range: `'ANTHRO MAP 2026'!A2`,
-      valueInputOption: 'USER_ENTERED',
-      requestBody: { values: mapRows },
-    });
+    // Write all in two targeted calls (update existing + append new)
+    const writes = [
+      sheets.spreadsheets.values.update({
+        spreadsheetId: SHEET_ID,
+        range: `'ANTHRO MAP 2026'!A2`,
+        valueInputOption: 'USER_ENTERED',
+        requestBody: { values: mapRows },
+      }),
+    ];
+    if (newRows.length) {
+      writes.push(sheets.spreadsheets.values.append({
+        spreadsheetId: SHEET_ID,
+        range: `'ANTHRO MAP 2026'!A1`,
+        valueInputOption: 'USER_ENTERED',
+        insertDataOption: 'INSERT_ROWS',
+        requestBody: { values: newRows },
+      }));
+    }
+    await Promise.all(writes);
 
-    res.json({ ok: true, pass1, pass2, rows: mapRows.length });
+    res.json({ ok: true, newPOs: newRows.length, updated: mapRows.length, rows: mapRows.length + newRows.length });
 
   } catch (e) {
     console.error('[map-sync]', e.message);
