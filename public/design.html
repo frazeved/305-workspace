@@ -93,8 +93,11 @@
     .bar-spacer { flex: 1; }
     .ndc-wrap { display: flex; flex-direction: column; gap: 2px; }
     .ndc-label { font-size: 9px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; }
-    .ndc-input { width: 110px; padding: 5px 8px; border: 1.5px solid #e4e7ed; border-radius: 6px; font-family: inherit; font-size: 12px; background: #f5f6fa; outline: none; color: #1a1d23; }
-    .ndc-input:focus { border-color: #7c3aed; background: #fff; }
+    .ndc-selects { display: flex; gap: 4px; }
+    .ndc-select { padding: 5px 4px; border: 1.5px solid #e4e7ed; border-radius: 6px; font-family: inherit; font-size: 12px; background: #f5f6fa; outline: none; color: #1a1d23; cursor: pointer; }
+    .ndc-select:focus { border-color: #7c3aed; background: #fff; }
+    #f-ndc-month { width: 60px; }
+    #f-ndc-year  { width: 62px; }
     .style-input { width: 200px; padding: 9px 14px; border: 2px solid #e4e7ed; border-radius: 8px; font-family: inherit; font-size: 18px; font-weight: 800; text-align: center; background: #f5f6fa; letter-spacing: 2px; outline: none; text-transform: uppercase; color: #1a1d23; }
     .style-input:focus { border-color: #7c3aed; background: #fff; }
     .style-input::placeholder { color: #9ca3af; font-weight: 500; font-size: 13px; letter-spacing: 0; text-transform: none; }
@@ -194,7 +197,7 @@
       .logo-urbn { font-size: 13px; padding-left: 8px; }
       .bar-spacer { display: none; }
       .ndc-wrap { order: 3; }
-      .ndc-input { width: 140px; }
+      #f-ndc-month { width: 66px; } #f-ndc-year { width: 68px; }
       .style-input { order: 4; width: 100%; font-size: 16px; letter-spacing: 1px; padding: 10px 14px; }
       .search-btn { order: 5; flex: 1; justify-content: center; min-height: 44px; }
       .clear-btn { order: 5; flex: 1; justify-content: center; min-height: 44px; }
@@ -332,7 +335,21 @@
       <div class="bar-spacer"></div>
       <div class="ndc-wrap">
         <span class="ndc-label">NDC Month / Year</span>
-        <input type="text" id="f-ndc" class="ndc-input" placeholder="MM/YYYY" data-col="NDC MONTH/YEAR" />
+        <div class="ndc-selects">
+          <select id="f-ndc-month" class="ndc-select" onchange="updateNdc()">
+            <option value="">MON</option>
+            <option value="01">JAN</option><option value="02">FEB</option><option value="03">MAR</option>
+            <option value="04">APR</option><option value="05">MAY</option><option value="06">JUN</option>
+            <option value="07">JUL</option><option value="08">AUG</option><option value="09">SEP</option>
+            <option value="10">OCT</option><option value="11">NOV</option><option value="12">DEC</option>
+          </select>
+          <select id="f-ndc-year" class="ndc-select" onchange="updateNdc()">
+            <option value="">YEAR</option>
+            <option value="2024">2024</option><option value="2025">2025</option>
+            <option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option>
+          </select>
+        </div>
+        <input type="hidden" id="f-ndc" data-col="NDC MONTH/YEAR" />
       </div>
       <input type="text" id="style-number" class="style-input" placeholder="STYLE #" data-col="STYLE #" onkeydown="if(event.key==='Enter') searchStyle()" />
       <button class="search-btn" id="search-btn" onclick="searchStyle()">
@@ -564,6 +581,12 @@
 </div>
 
 <script>
+function updateNdc() {
+  const m = document.getElementById('f-ndc-month').value;
+  const y = document.getElementById('f-ndc-year').value;
+  document.getElementById('f-ndc').value = (m && y) ? `${m}/${y}` : '';
+}
+
 function toggleOther(sel) {
   const inp = sel.parentElement.querySelector('.other-input');
   if (!inp) return;
@@ -673,6 +696,16 @@ function populateForm(style) {
       el.value = val;
     }
   });
+  // Parse NDC MONTH/YEAR → set month + year selects
+  const ndcVal = style['NDC MONTH/YEAR'] || '';
+  const ndcParts = ndcVal.split('/');
+  if (ndcParts.length === 2) {
+    const monEl = document.getElementById('f-ndc-month');
+    const yrEl  = document.getElementById('f-ndc-year');
+    if (monEl) monEl.value = ndcParts[0].padStart(2, '0');
+    if (yrEl)  yrEl.value  = ndcParts[1];
+  }
+
   // Show CAD image from CAD URL field
   const cadUrl = style['CAD IMAGE'] || '';
   showCadImage(cadUrl);
@@ -702,6 +735,8 @@ function clearForm() {
     else el.value = '';
   });
   document.querySelectorAll('.other-input').forEach(inp => { inp.value = ''; inp.classList.remove('visible'); });
+  const ndcMon = document.getElementById('f-ndc-month'); if (ndcMon) ndcMon.value = '';
+  const ndcYr  = document.getElementById('f-ndc-year');  if (ndcYr)  ndcYr.value  = '';
   document.getElementById('style-number').value = '';
   document.getElementById('search-msg').textContent = '';
   document.getElementById('search-msg').className = 'search-msg';
