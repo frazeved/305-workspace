@@ -84,6 +84,8 @@
     .td-select { font-family: inherit; font-size: 12px; font-weight: 500; padding: 5px 8px; border: 1px solid var(--border); border-radius: 6px; outline: none; background: var(--bg); color: var(--text); cursor: pointer; transition: border-color 0.15s; min-width: 80px; }
     .td-select:focus { border-color: var(--accent); background: #fff; }
     .contact-val { font-size: 11px; color: var(--muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+    .ship-code   { font-size: 12px; font-weight: 700; color: var(--accent); background: var(--accent-lt); border-radius: 5px; padding: 2px 8px; }
+    .muted-val   { color: var(--muted); font-style: italic; }
 
     .status-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
     .s-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
@@ -204,7 +206,7 @@
             <th>Box Qty</th>
             <th>Weight (lbs)</th>
             <th>Service</th>
-            <th>Ship To</th>
+            <th>Deliver To</th>
             <th>Contact Name</th>
           </tr>
         </thead>
@@ -219,8 +221,9 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const SHEET_ID  = '1y0iL7PJldbVQmPIAnJi9wvA2hvjB8_aK2bU2kxvUf5Q';
-const CSV_URL   = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=99866922`;
+const SHEET_ID        = '1y0iL7PJldbVQmPIAnJi9wvA2hvjB8_aK2bU2kxvUf5Q';
+const CSV_URL         = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=99866922`;
+const PO_DETAIL_URL   = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=2017761959`;
 
 const SERVICES = [
   { code: 'FIRST_OVERNIGHT',          label: 'FedEx First Overnight' },
@@ -259,7 +262,8 @@ const PACKAGING = {
   'S&S':        '23 × 16 × 11 in',
 };
 
-let sheetRows = null; // cached sheet data
+let sheetRows    = null; // cached Warehouse Now rows
+let deliverToMap = null; // cached po# → { code, desc } from PO DETAIL
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -318,10 +322,29 @@ function serviceOptions(selected) {
     SERVICES.map(s => `<option value="${s.code}" ${s.code===selected?'selected':''}>${s.label}</option>`).join('');
 }
 
-function shipToOptions(selected) {
-  return ['', ...Object.keys(ADDRESS_BOOK)].map(k =>
-    `<option value="${k}" ${k===selected?'selected':''}>${k ? k+' — '+ADDRESS_BOOK[k] : '— Select DC —'}</option>`
-  ).join('');
+async function loadDeliverToMap() {
+  if (deliverToMap) return deliverToMap;
+  const res = await fetch(PO_DETAIL_URL);
+  if (!res.ok) return (deliverToMap = {});
+  const all = parseCSV(await res.text());
+  if (all.length < 2) return (deliverToMap = {});
+
+  const H = all[0];
+  const poCol   = colIdx(H, 'po#', 'po number', 'purchase order', 'po');
+  const dtCol   = colIdx(H, 'deliver to', 'ship to', 'deliver-to');
+  const descCol = colIdx(H, 'deliver to desc', 'contact name', 'ship to desc', 'deliver to description');
+
+  deliverToMap = {};
+  for (let i = 1; i < all.length; i++) {
+    const r  = all[i];
+    const po = poCol >= 0 ? (r[poCol]||'').trim() : '';
+    if (!po || deliverToMap[po]) continue; // take first row per PO
+    deliverToMap[po] = {
+      code: dtCol   >= 0 ? (r[dtCol]||'').trim()   : '',
+      desc: descCol >= 0 ? (r[descCol]||'').trim()  : '',
+    };
+  }
+  return deliverToMap;
 }
 
 async function loadSheet() {
@@ -341,7 +364,6 @@ async function loadSheet() {
     supplier: colIdx(H, 'supplier'),
   };
 
-  // Style carry-forward (merged cells)
   let lastStyle = '';
   sheetRows = all.slice(1).map(r => {
     const v = (r[0]||'').trim();
@@ -373,7 +395,7 @@ async function doSearch(filterFn, label) {
   document.getElementById('btn-clear').style.display = 'none';
 
   try {
-    const rows = await loadSheet();
+    const [rows, dtMap] = await Promise.all([loadSheet(), loadDeliverToMap()]);
     const matches = rows.filter(filterFn);
 
     if (!matches.length) {
@@ -381,7 +403,7 @@ async function doSearch(filterFn, label) {
       return;
     }
 
-    renderResults(matches, label);
+    renderResults(matches, dtMap, label);
   } catch(e) {
     document.getElementById('result-text').textContent = '⚠ ' + e.message;
     showToast(e.message);
@@ -416,17 +438,28 @@ function clearResults() {
   document.getElementById('select-all').checked = false;
 }
 
-function renderResults(rows, label) {
+function renderResults(rows, dtMap, label) {
   const tbody = document.getElementById('result-body');
 
   tbody.innerHTML = rows.map((r, i) => {
+    const dt       = dtMap[r.po] || {};
+    const shipCode = dt.code || '';
+    const shipDesc = dt.desc || (shipCode ? (ADDRESS_BOOK[shipCode] || '') : '');
     const boxSize  = getBoxSize(r.supplier);
+
     const statusBadge = norm(r.status).includes('shipped')
       ? `<span class="status-badge badge-sh"><span class="s-dot"></span>${esc(r.status)}</span>`
       : `<span class="status-badge badge-other"><span class="s-dot"></span>${esc(r.status)||'—'}</span>`;
     const boxSizeHtml = boxSize
       ? `<span class="box-size-val">${boxSize}</span>`
       : `<span class="box-size-unknown">Unknown</span>`;
+
+    const shipToHtml = shipCode
+      ? `<span class="ship-code">${esc(shipCode)}</span>`
+      : `<span class="muted-val">—</span>`;
+    const contactHtml = shipDesc
+      ? esc(shipDesc)
+      : `<span class="muted-val">—</span>`;
 
     return `<tr data-idx="${i}" id="row-${i}">
       <td class="td-check"><input type="checkbox" class="row-check" onchange="onRowCheck(${i})" /></td>
@@ -437,13 +470,9 @@ function renderResults(rows, label) {
       <td>${boxSizeHtml}</td>
       <td><input class="td-input" type="number" min="1" placeholder="Qty" id="qty-${i}" /></td>
       <td><input class="td-input" type="number" min="0.1" step="0.1" placeholder="lbs" id="weight-${i}" style="width:72px" /></td>
-      <td><select class="td-select" id="service-${i}">${serviceOptions('')}</select></td>
-      <td>
-        <select class="td-select" id="shipto-${i}" onchange="onShipToChange(${i})">
-          ${shipToOptions('')}
-        </select>
-      </td>
-      <td><span class="contact-val" id="contact-${i}">—</span></td>
+      <td><select class="td-select" id="service-${i}">${serviceOptions('FEDEX_GROUND')}</select></td>
+      <td>${shipToHtml}</td>
+      <td class="contact-val">${contactHtml}</td>
     </tr>`;
   }).join('');
 
@@ -454,10 +483,6 @@ function renderResults(rows, label) {
   document.getElementById('btn-generate').disabled = true;
 }
 
-function onShipToChange(i) {
-  const code = document.getElementById('shipto-' + i).value;
-  document.getElementById('contact-' + i).textContent = code ? ADDRESS_BOOK[code] : '—';
-}
 
 function onRowCheck(i) {
   const row = document.getElementById('row-' + i);
