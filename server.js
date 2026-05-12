@@ -830,26 +830,9 @@ app.post('/api/gabriel/map-sync', async (req, res) => {
       String(a[poCol]).localeCompare(String(b[poCol]))
     );
 
-    // ── STEP 2+3: update existing rows ─────────────────────────────────────
+    // ── Build mapRows (existing rows — passes applied below) ───────────────
     let pass1 = 0;
-    const mapRows = targetData.slice(1).map(rawRow => {
-      const row   = [...rawRow];
-      const style = row[tgtStyleCol];
-      if (!style) return row;
-      const match = styleMap[String(style).trim()];
-      if (!match) return row;
-      for (const c of allCols) {
-        const ti    = tgtCI[c];
-        const cur   = row[ti];
-        const nv    = match[c];
-        const blank = cur === '' || cur === null || cur === undefined;
-        if ((alwaysWrite.includes(c) || (onlyIfBlank.includes(c) && blank)) && nv !== undefined) row[ti] = nv;
-      }
-      const subBlank = row[tgtSubCat] === '' || row[tgtSubCat] === null || row[tgtSubCat] === undefined;
-      if (subBlank && match['SUB-CATEGORY'] !== undefined) row[tgtSubCat] = match['SUB-CATEGORY'];
-      pass1++;
-      return row;
-    });
+    const mapRows = targetData.slice(1).map(rawRow => [...rawRow]);
 
     const ts_ = {
       period:       smartIdx(tsH, 'PERIOD'),
@@ -942,12 +925,39 @@ app.post('/api/gabriel/map-sync', async (req, res) => {
       if (ptMap.has(po) && tgt.channel >= 0) row[tgt.channel] = ptMap.get(po);
     };
 
-    // Apply to existing rows
-    let pass2 = 0;
-    for (const row of mapRows) { const po = norm(row[poCol]); if (po) { enrichRow(row); pass2++; } }
+    // Apply styleMap (Pass 1 / Production DB) to a row by STYLE#
+    const applyStyleMap = row => {
+      const style = String(row[tgtStyleCol] || '').trim();
+      if (!style) return;
+      const match = styleMap[style];
+      if (!match) return;
+      for (const c of allCols) {
+        const ti = tgtCI[c];
+        if (ti < 0) continue;
+        const nv = match[c];
+        if (nv === undefined) continue;
+        const cur = row[ti];
+        const blank = cur === '' || cur === null || cur === undefined;
+        if (alwaysWrite.includes(c) || (onlyIfBlank.includes(c) && blank)) row[ti] = nv;
+      }
+      const subBlank = row[tgtSubCat] === '' || row[tgtSubCat] === null || row[tgtSubCat] === undefined;
+      if (subBlank && match['SUB-CATEGORY'] !== undefined) row[tgtSubCat] = match['SUB-CATEGORY'];
+    };
 
-    // Apply to NEW rows too — so they're fully populated in the same sync run
-    for (const row of newRows) enrichRow(row);
+    // Apply to existing rows (Pass 1 + Pass 2/3)
+    let pass2 = 0;
+    for (const row of mapRows) {
+      const style = String(row[tgtStyleCol] || '').trim();
+      if (style && styleMap[style]) { applyStyleMap(row); pass1++; }
+      const po = norm(row[poCol]);
+      if (po) { enrichRow(row); pass2++; }
+    }
+
+    // Apply ALL passes to new rows in the same run — no second sync needed
+    for (const row of newRows) {
+      applyStyleMap(row);
+      enrichRow(row);
+    }
 
     // Write only the specific columns we touched (preserves all formulas in other columns)
     const writeCols = [
