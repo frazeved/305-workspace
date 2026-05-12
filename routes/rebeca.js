@@ -271,6 +271,7 @@ router.post('/generate-tp', async (req, res) => {
     // Copy template into LINK STYLE FOLDER
     const copyRes = await drive.files.copy({
       fileId: templateId,
+      supportsAllDrives: true,
       requestBody: { name: copyName, parents: [folderId] },
     });
     const copyId = copyRes.data.id;
