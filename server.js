@@ -795,6 +795,15 @@ app.post('/api/samantha/powerbi-sync', async (req, res) => {
       hVals.push([isFormulaPB(orig[COL_H])  ? orig[COL_H]  : (orig[COL_H]  ?? '')]);
     }
 
+    // Deduplicate newRows by PO# (in case PO NEW has duplicate entries)
+    const seenPOs = new Set();
+    const dedupedRows = newRows.filter(row => {
+      const po = String(row[tsPO] || '').trim().toUpperCase();
+      if (!po || seenPOs.has(po)) return false;
+      seenPOs.add(po);
+      return true;
+    });
+
     const writes = [];
     if (tsData.length > 1) {
       writes.push(
@@ -803,23 +812,23 @@ app.post('/api/samantha/powerbi-sync', async (req, res) => {
           requestBody: {
             valueInputOption: 'USER_ENTERED',
             data: [
-              { range: `'TRADESTONE DATABASE'!${ajColLetter}2`, values: ajVals },
-              { range: `'TRADESTONE DATABASE'!${akColLetter}2`, values: akVals },
-              { range: `'TRADESTONE DATABASE'!${hColLetter}2`,  values: hVals  },
+              { range: `'TRADESTONE DATABASE'!AJ2`, values: ajVals },
+              { range: `'TRADESTONE DATABASE'!AK2`, values: akVals },
+              { range: `'TRADESTONE DATABASE'!H2`,  values: hVals  },
             ],
           },
         })
       );
     }
-    if (newRows.length) {
+    if (dedupedRows.length) {
       writes.push(sheets.spreadsheets.values.append({
         spreadsheetId: SHEET_ID, range: `'TRADESTONE DATABASE'!A1`,
         valueInputOption: 'USER_ENTERED', insertDataOption: 'INSERT_ROWS',
-        requestBody: { values: newRows },
+        requestBody: { values: dedupedRows },
       }));
     }
     await Promise.all(writes);
-    res.json({ ok: true, newRows: newRows.length, invoiceRefreshed: ajVals.length });
+    res.json({ ok: true, newRows: dedupedRows.length, duplicatesSkipped: newRows.length - dedupedRows.length, invoiceRefreshed: ajVals.length });
   } catch (e) {
     console.error('[powerbi-sync]', e.message);
     res.status(500).json({ error: e.message });
