@@ -208,6 +208,7 @@
             <th>Service</th>
             <th>Deliver To</th>
             <th>Contact Name</th>
+            <th>Result</th>
           </tr>
         </thead>
         <tbody id="result-body">
@@ -461,7 +462,7 @@ function renderResults(rows, dtMap, label) {
       ? esc(shipDesc)
       : `<span class="muted-val">—</span>`;
 
-    return `<tr data-idx="${i}" id="row-${i}">
+    return `<tr data-idx="${i}" id="row-${i}" data-po="${esc(r.po)}" data-supplier="${esc(r.supplier)}" data-deliver-to="${esc(shipCode)}">
       <td class="td-check"><input type="checkbox" class="row-check" onchange="onRowCheck(${i})" /></td>
       <td><span class="style-val">${esc(r.style)}</span></td>
       <td><span class="po-val">${esc(r.po)}</span></td>
@@ -473,6 +474,7 @@ function renderResults(rows, dtMap, label) {
       <td><select class="td-select" id="service-${i}">${serviceOptions('FEDEX_GROUND')}</select></td>
       <td>${shipToHtml}</td>
       <td class="contact-val">${contactHtml}</td>
+      <td id="res-${i}" style="font-size:11px;color:var(--muted);">—</td>
     </tr>`;
   }).join('');
 
@@ -504,6 +506,68 @@ function toggleAll(master) {
   const checked = document.getElementById('result-body').querySelectorAll('.row-check:checked');
   document.getElementById('btn-generate').disabled = checked.length === 0;
 }
+
+async function generateLabels() {
+  const btn     = document.getElementById('btn-generate');
+  const checked = [...document.getElementById('result-body').querySelectorAll('.row-check:checked')];
+  if (!checked.length) return;
+
+  // Validate all rows first
+  for (const cb of checked) {
+    const row = cb.closest('tr');
+    const idx = row.dataset.idx;
+    if (!document.getElementById(`qty-${idx}`).value || parseInt(document.getElementById(`qty-${idx}`).value) < 1) {
+      showToast(`PO ${row.dataset.po}: enter a Box Qty`); return;
+    }
+    if (!document.getElementById(`service-${idx}`).value) {
+      showToast(`PO ${row.dataset.po}: select a Service`); return;
+    }
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="animation:spin 0.8s linear infinite"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.26"/></svg> Creating Labels…`;
+
+  for (const cb of checked) {
+    const row        = cb.closest('tr');
+    const idx        = row.dataset.idx;
+    const po         = row.dataset.po;
+    const supplier   = row.dataset.supplier;
+    const deliverTo  = row.dataset.deliverTo;
+    const boxQty     = parseInt(document.getElementById(`qty-${idx}`).value);
+    const weight     = parseFloat(document.getElementById(`weight-${idx}`).value) || 20;
+    const serviceCode = document.getElementById(`service-${idx}`).value;
+    const resCell    = document.getElementById(`res-${idx}`);
+
+    resCell.textContent = '⏳ Creating…';
+    try {
+      const r    = await fetch('/api/fedex/create-label', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ po, boxQty, weight, serviceCode, deliverToCode: deliverTo, supplier }),
+      });
+      const data = await r.json();
+      if (data.ok) {
+        row.style.background = '#f0fdf4';
+        row.classList.remove('selected');
+        cb.checked = false;
+        const driveLink = data.driveUrl ? ` <a href="${data.driveUrl}" target="_blank" style="color:var(--accent)">PDF</a>` : '';
+        resCell.innerHTML = `<span style="color:#16a34a;font-weight:600;">✓ ${data.tracking}</span>${driveLink}<br><span style="color:var(--muted)">${data.cost || ''}</span>`;
+      } else {
+        resCell.innerHTML = `<span style="color:var(--red);" title="${esc(data.error||'')}">✗ Error</span>`;
+        showToast(`PO ${po}: ${data.error}`);
+      }
+    } catch (e) {
+      resCell.innerHTML = `<span style="color:var(--red);">✗ Failed</span>`;
+      showToast(`PO ${po}: ${e.message}`);
+    }
+  }
+
+  const remaining = document.getElementById('result-body').querySelectorAll('.row-check:checked');
+  btn.disabled = remaining.length === 0;
+  btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 17H17.01M17 3H5A2 2 0 0 0 3 5V15A2 2 0 0 0 5 17H9L12 21L15 17H17A2 2 0 0 0 19 15V5A2 2 0 0 0 17 3Z"/></svg> Generate Labels`;
+}
+
+document.getElementById('btn-generate').addEventListener('click', generateLabels);
 </script>
 
 </body>
