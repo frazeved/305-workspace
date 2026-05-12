@@ -903,11 +903,10 @@ app.post('/api/gabriel/map-sync', async (req, res) => {
       return isNaN(d) ? '' : MONTH_NAMES[d.getMonth()];
     };
 
-    let pass2 = 0;
-    for (let i = 0; i < mapRows.length; i++) {
-      const row = mapRows[i];
-      const po  = norm(row[poCol]);
-      if (!po) continue;
+    // Enrich a single row with Tradestone, PO DETAIL, PO TRADE, PERIOD, CATEGORY
+    const enrichRow = row => {
+      const po = norm(row[poCol]);
+      if (!po) return;
       const ts = tsMap.get(po);
       const pd = pdMap.get(po);
       if (ts) {
@@ -917,7 +916,6 @@ app.post('/api/gabriel/map-sync', async (req, res) => {
         setSrc(row, tgt.wholesale,    ts, ts_.wholesale);
         setSrc(row, tgt.shipDate,     ts, ts_.shipDate);
         setSrc(row, tgt.cancelDate,   ts, ts_.cancelDate);
-        pass2++;
       }
       // PERIOD rule: month name of URBN INVOICE DATE if populated, else Cancel Date
       if (tgt.period >= 0) {
@@ -936,14 +934,20 @@ app.post('/api/gabriel/map-sync', async (req, res) => {
         setSrc(row, tgt.brand,         pd, pd_.brand);
         setSrc(row, tgt.deliverTo,     pd, pd_.deliverTo);
         setSrc(row, tgt.fobPrice,      pd, pd_.fobPrice);
-        // Derive CATEGORY from IP CLASS
         if (tgt.category >= 0 && pd_.ipClass >= 0) {
           const ip = pd[pd_.ipClass];
           if (ip != null && ip !== '') row[tgt.category] = ipToCategory(ip);
         }
       }
       if (ptMap.has(po) && tgt.channel >= 0) row[tgt.channel] = ptMap.get(po);
-    }
+    };
+
+    // Apply to existing rows
+    let pass2 = 0;
+    for (const row of mapRows) { const po = norm(row[poCol]); if (po) { enrichRow(row); pass2++; } }
+
+    // Apply to NEW rows too — so they're fully populated in the same sync run
+    for (const row of newRows) enrichRow(row);
 
     // Write only the specific columns we touched (preserves all formulas in other columns)
     const writeCols = [
