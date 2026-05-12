@@ -755,12 +755,15 @@ app.post('/api/samantha/powerbi-sync', async (req, res) => {
     }
 
     // Step 2 — add only NEW POs (not already in TRADESTONE DATABASE)
-    // Detect formula columns from last existing data row — used to carry formulas into new rows
-    const lastExistRow = tsData.length > 1 ? tsData[tsData.length - 1] : [];
-    const formulaCols = []; // [{colIdx, formula}]
-    lastExistRow.forEach((cell, ci) => {
-      if (isFormulaPB(cell)) formulaCols.push({ colIdx: ci, formula: cell });
-    });
+    // Find formula column indices by header name
+    const cat2Idx  = tsHM['category 2']  ?? tsHM['category2']  ?? -1;
+    const cat3Idx  = tsHM['category 3']  ?? tsHM['category3']  ?? -1;
+    const boxesIdx = tsHM['boxes']       ?? -1;
+    const yr2Idx   = tsHM['year 2']      ?? tsHM['year2']       ?? -1;
+    const mo2Idx   = tsHM['month 2']     ?? tsHM['month2']      ?? -1;
+
+    // First data row = 2, last existing = tsData.length (since tsData[0]=header)
+    const firstNewSheetRow = tsData.length + 1; // sheet row of first new row to be appended
 
     const newRows = [];
     for (let si = 1; si < poNewData.length; si++) {
@@ -778,10 +781,15 @@ app.post('/api/samantha/powerbi-sync', async (req, res) => {
       if (inv) { nr[COL_AJ] = inv.AJ; nr[COL_AK] = inv.AK; }
       nr[COL_H] = colH(nr);
       if (tsIPcol >= 0) nr[COL_V] = IP_CAT[parseInt(nr[tsIPcol])] || 'OTHER';
-      // Carry formula columns from the last existing row (relative refs auto-adjust on append)
-      for (const { colIdx, formula } of formulaCols) {
-        if (nr[colIdx] === '') nr[colIdx] = formula;
-      }
+
+      // Inject formulas with the exact sheet row number for this new row
+      const r = firstNewSheetRow + newRows.length;
+      if (cat2Idx  >= 0) nr[cat2Idx]  = `=IFNA(VLOOKUP(V${r},{"Dresses","Dresses";"Rompers","Dresses";"JUMPERS & ROMPERS","Dresses";"Blouses","Blouses";"BLOUSES & SHIRTS","Blouses";"SLEEP","Lounge";"Fine Gauge","Sweaters";"Sweaters","Sweaters";"SWTRS & SWTSHRTS","Sweaters";"Heavyweight","Knit";"Knit","Knit";"Pants","Bottoms";"PANTS & LEGGINGS","Bottoms";"Jumpsuit","Bottoms";"Swimwear","Swimwear";"Water''s Edge","Swimwear";"Wraps","Accessories";"Shorts","Shorts";"Skirts","Skirts"},2,0),"No Match")`;
+      if (cat3Idx  >= 0) nr[cat3Idx]  = `=IFNA(VLOOKUP(V${r},{"Sleep","Lounge";"Blouses","Blouses";"BLOUSES & SHIRTS","Blouses";"Dresses","Dresses";"Fine Gauge","Sweaters";"Heavyweight","Knit";"JUMPERS & ROMPERS","Bottoms";"Jumpsuit","Bottoms";"Pants","Bottoms";"PANTS & LEGGINGS","Bottoms";"Rompers","Dresses";"Shorts","Skirts";"Skirts","Skirts";"Sweaters","Sweaters";"SWTRS & SWTSHRTS","Sweaters";"Swimwear","Swimwear";"Water''s Edge","Swimwear";"Wraps","Accessories"},2,0),"No Match")`;
+      if (boxesIdx >= 0) nr[boxesIdx] = `=AF${r}/30`;
+      if (yr2Idx   >= 0) nr[yr2Idx]   = `=YEAR(H${r})`;
+      if (mo2Idx   >= 0) nr[mo2Idx]   = `=TEXT(H${r},"MM") & " - " & TEXT(H${r},"MMM")`;
+
       newRows.push(nr);
     }
 
