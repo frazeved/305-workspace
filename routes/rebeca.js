@@ -138,40 +138,50 @@ router.delete('/delete-style', async (req, res) => {
   if (!requireCreds(res)) return;
   try {
     const sheets = sheetsClient(false);
+    const tabs   = ['Design DataBase', 'Production & PO DataBase', 'Print DataBase', 'PowerBI database Process'];
 
-    const meta = await sheets.spreadsheets.get({ spreadsheetId: SHEET_ID });
+    // Fetch sheet metadata + all tab data in parallel
+    const [meta, ...tabResults] = await Promise.all([
+      sheets.spreadsheets.get({ spreadsheetId: SHEET_ID }),
+      ...tabs.map(tab => sheets.spreadsheets.values.get({
+        spreadsheetId: SHEET_ID, range: `'${tab}'`,
+        valueRenderOption: 'FORMATTED_VALUE',
+      }).catch(() => null)),
+    ]);
+
     const sheetIdMap = {};
     for (const s of meta.data.sheets) sheetIdMap[s.properties.title] = s.properties.sheetId;
 
-    const tabs        = ['Design DataBase', 'Production & PO DataBase', 'Print DataBase', 'PowerBI database Process'];
+    const requests    = [];
     const deletedFrom = [];
 
-    for (const tab of tabs) {
-      const sheetId = sheetIdMap[tab];
-      if (sheetId === undefined) continue;
-      const r = await sheets.spreadsheets.values.get({
-        spreadsheetId: SHEET_ID, range: `'${tab}'`,
-        valueRenderOption: 'FORMATTED_VALUE',
-      });
-      const rows     = r.data.values || [];
-      const headers  = (rows[0] || []).map(h => String(h).trim());
+    tabs.forEach((tab, i) => {
+      const result  = tabResults[i];
+      if (!result) return;
+      const rows    = result.data.values || [];
+      const headers = (rows[0] || []).map(h => String(h).trim());
       const styleCol = headers.findIndex(h => h.toUpperCase() === 'STYLE #');
-      if (styleCol < 0) continue;
+      if (styleCol < 0) return;
       const rowIdx = rows.slice(1).findIndex(r => String(r[styleCol] || '').trim().toUpperCase() === styleNum);
-      if (rowIdx < 0) continue;
-      await sheets.spreadsheets.batchUpdate({
-        spreadsheetId: SHEET_ID,
-        requestBody: { requests: [{ deleteDimension: {
-          range: { sheetId, dimension: 'ROWS', startIndex: rowIdx + 1, endIndex: rowIdx + 2 },
-        }}]},
-      });
+      if (rowIdx < 0) return;
+      const sheetId = sheetIdMap[tab];
+      if (sheetId === undefined) return;
+      requests.push({ deleteDimension: {
+        range: { sheetId, dimension: 'ROWS', startIndex: rowIdx + 1, endIndex: rowIdx + 2 },
+      }});
       deletedFrom.push(tab);
-    }
+    });
 
-    if (deletedFrom.length === 0) return res.status(404).json({ error: `Style "${styleNum}" not found in any sheet` });
+    if (requests.length === 0) return res.status(404).json({ error: `Style "${styleNum}" not found in any sheet` });
+
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId: SHEET_ID,
+      requestBody: { requests },
+    });
+
     res.json({ ok: true, deletedFrom });
   } catch (e) {
-    console.error('[rebeca/delete-style]', e.message);
+    console.error('[rebeca/delete-style]', e.message, e.response?.data);
     res.status(500).json({ error: e.message });
   }
 });
