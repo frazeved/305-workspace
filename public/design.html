@@ -75,7 +75,7 @@
     .action-btn.purple:hover { background: #f5f3ff; border-color: #ddd6fe; }
     .action-btn.gold { color: #92400e; }
     .action-btn.gold:hover { background: #fffbeb; border-color: #fde68a; }
-    .action-btn.save-btn { background: #dcfce7; color: #15803d; border-color: #86efac; }
+    .action-btn.save-btn { background: #dcfce7; color: #15803d; border-color: #86efac; padding: 12px 14px; font-size: 13px; }
     .action-btn.save-btn:hover { background: #bbf7d0; border-color: #4ade80; }
     .btn-icon { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .action-btn.blue .btn-icon { background: #1d4ed8; }
@@ -203,14 +203,6 @@
       <div class="style-ref" id="style-ref"></div>
 
       <!-- PRIMARY ACTIONS -->
-      <button class="action-btn blue">
-        <span class="btn-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
-        TP E-MAIL
-      </button>
-      <button class="action-btn sky">
-        <span class="btn-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
-        MEETING E-MAIL
-      </button>
       <button class="action-btn red" onclick="deleteStyle()">
         <span class="btn-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></span>
         DELETE STYLE
@@ -271,12 +263,12 @@
         </div>
         <div class="field">
           <span class="field-label">TP SENT TO SUPPLIER</span>
-          <div class="field-input"><input type="text" id="f-tp-sent" data-col="TP SENT TO SUPPLIER" /></div>
+          <div class="field-input"><input type="date" id="f-tp-sent" data-col="TP SENT TO SUPPLIER" /></div>
         </div>
 
         <div class="field">
           <span class="field-label">INTERNAL PRESENTATION</span>
-          <div class="field-input"><input type="text" id="f-int-pres" data-col="INTERNAL PRESENTATION" /></div>
+          <div class="field-input"><input type="date" id="f-int-pres" data-col="INTERNAL PRESENTATION" /></div>
         </div>
         <div class="field">
           <span class="field-label">TP LINK</span>
@@ -285,16 +277,16 @@
 
         <div class="field">
           <span class="field-label">INTERNAL APPROVAL</span>
-          <div class="field-input"><input type="text" id="f-int-appr" data-col="INTERNAL APPROVAL" /></div>
+          <div class="field-input"><input type="date" id="f-int-appr" data-col="INTERNAL APPROVAL" /></div>
         </div>
         <div class="field">
           <span class="field-label">PRINT SENT TO SUPPLIER</span>
-          <div class="field-input"><input type="text" id="f-print-sent" data-col="PRINT SENT TO SUPPLIER" /></div>
+          <div class="field-input"><input type="date" id="f-print-sent" data-col="PRINT SENT TO SUPPLIER" /></div>
         </div>
 
         <div class="field">
           <span class="field-label">BUYER PRESENTATION</span>
-          <div class="field-input"><input type="text" id="f-buyer-pres" data-col="BUYER PRESENTATION" /></div>
+          <div class="field-input"><input type="date" id="f-buyer-pres" data-col="BUYER PRESENTATION" /></div>
         </div>
         <div class="field">
           <span class="field-label">COLOR APPROVED (SMS or S/O)</span>
@@ -303,11 +295,11 @@
 
         <div class="field">
           <span class="field-label">BUYER APPROVAL</span>
-          <div class="field-input"><input type="text" id="f-buyer-appr" data-col="BUYER APPROVAL" /></div>
+          <div class="field-input"><input type="date" id="f-buyer-appr" data-col="BUYER APPROVAL" /></div>
         </div>
         <div class="field">
           <span class="field-label">PRINT INFO SENT TO MARKER MAKER</span>
-          <div class="field-input"><input type="text" id="f-print-mkr-sent" data-col="PRINT INFO SENT TO MARKER MAKER" /></div>
+          <div class="field-input"><input type="date" id="f-print-mkr-sent" data-col="PRINT INFO SENT TO MARKER MAKER" /></div>
         </div>
 
         <div class="field">
@@ -316,7 +308,7 @@
         </div>
         <div class="field">
           <span class="field-label">PRINT INFO FROM MARKER MAKER</span>
-          <div class="field-input"><input type="text" id="f-print-mkr-recv" data-col="PRINT INFO RECEIVED FROM MARKER MAKER" /></div>
+          <div class="field-input"><input type="date" id="f-print-mkr-recv" data-col="PRINT INFO RECEIVED FROM MARKER MAKER" /></div>
         </div>
 
         <div class="field">
@@ -325,25 +317,25 @@
         </div>
         <div class="field">
           <span class="field-label">PATTERN REQUEST (Existing Styles)</span>
-          <div class="field-input"><input type="text" id="f-pat-req-ex" data-col="PATTERN REQUEST (Existing Styles)" /></div>
+          <div class="field-input"><input type="date" id="f-pat-req-ex" data-col="PATTERN REQUEST (Existing Styles)" /></div>
         </div>
 
         <div class="field">
           <span class="field-label">TP DEVELOPMENT</span>
-          <div class="field-input"><input type="text" id="f-tp-dev" data-col="TP DEVELOPMENT" /></div>
+          <div class="field-input"><input type="date" id="f-tp-dev" data-col="TP DEVELOPMENT" /></div>
         </div>
         <div class="field">
           <span class="field-label">PATTERN RECEIVE (Existing Styles)</span>
-          <div class="field-input"><input type="text" id="f-pat-recv-ex" data-col="PATTERN RECEIVE (Existing Styles)" /></div>
+          <div class="field-input"><input type="date" id="f-pat-recv-ex" data-col="PATTERN RECEIVE (Existing Styles)" /></div>
         </div>
 
         <div class="field">
           <span class="field-label">BRAND</span>
-          <div class="field-input"><select id="f-brand" data-col="BRAND"><option value="">--</option><option>Farm Rio</option><option>URBN</option></select></div>
+          <div class="field-input"><select id="f-brand" data-col="BRAND"><option value="">--</option><option>Anthropologie</option><option>Nuuly</option><option>UK</option></select></div>
         </div>
         <div class="field">
           <span class="field-label">PATTERN REQUEST (New Styles)</span>
-          <div class="field-input"><input type="text" id="f-pat-req-new" data-col="PATTERN REQUEST (New Styles)" /></div>
+          <div class="field-input"><input type="date" id="f-pat-req-new" data-col="PATTERN REQUEST (New Styles)" /></div>
         </div>
 
         <div class="field no-border">
@@ -352,7 +344,7 @@
         </div>
         <div class="field no-border">
           <span class="field-label">PATTERN RECEIVE (New Styles)</span>
-          <div class="field-input"><input type="text" id="f-pat-recv-new" data-col="PATTERN RECEIVE (New Styles)" /></div>
+          <div class="field-input"><input type="date" id="f-pat-recv-new" data-col="PATTERN RECEIVE (New Styles)" /></div>
         </div>
 
       </div>
@@ -428,7 +420,7 @@
 
         <div class="field">
           <span class="field-label">TECH PACK MODEL</span>
-          <div class="field-input"><select id="f-tp-model" data-col="TECH PACK MODEL"><option value="">--</option></select></div>
+          <div class="field-input"><select id="f-tp-model" data-col="TECH PACK MODEL"><option value="">--</option><option>TP_FARM ANTHRO REPEAT BODY</option><option>TP_FARM ANTHRO NEW BODY</option></select></div>
         </div>
         <div class="field">
           <span class="field-label">LINK A/W SUPPLIER</span>
@@ -440,18 +432,15 @@
           <div class="field-input"><input type="text" id="f-color-group" data-col="COLOR GROUP" /></div>
         </div>
         <div class="field">
-          <span class="field-label">PRODUCTION STATUS</span>
-          <div class="field-input"><select id="f-prod-status" data-col="PRODUCTION STATUS"><option value="">--</option></select></div>
-        </div>
-
-        <div class="field no-border">
           <span class="field-label">YEAR</span>
           <div class="field-input"><input type="text" id="f-year" data-col="YEAR" /></div>
         </div>
+
         <div class="field no-border">
           <span class="field-label">MONTH</span>
           <div class="field-input"><input type="text" id="f-month" data-col="MONTH" /></div>
         </div>
+        <div class="field no-border"></div>
 
       </div>
     </div>
@@ -500,6 +489,15 @@ async function searchStyle() {
   }
 }
 
+function toDateInput(val) {
+  if (!val) return '';
+  // already YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+  const d = new Date(val);
+  if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
+  return '';
+}
+
 function populateForm(style) {
   document.querySelectorAll('[data-col]').forEach(el => {
     const col = el.getAttribute('data-col');
@@ -516,6 +514,8 @@ function populateForm(style) {
         el.appendChild(opt);
         el.value = val;
       }
+    } else if (el.type === 'date') {
+      el.value = toDateInput(val);
     } else {
       el.value = val;
     }
