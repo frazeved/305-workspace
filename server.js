@@ -716,25 +716,28 @@ app.post('/api/gabriel/map-sync', async (req, res) => {
     const onlyIfBlank    = ["SUPPLIER", "HTS CODE", "DUTY", "FREIGHT"];
     const allCols        = [...alwaysWrite, ...onlyIfBlank];
 
-    const srcStyleCol  = idx(srcH, "ORIGINAL STYLE#");
-    const srcStatusCol = idx(srcH, "STATUS");
-    const tgtStyleCol  = idx(tgtH, "STYLE #");
-    const srcSubCat    = idx(srcH, "SUB-CATEGORY");
-    const tgtSubCat    = idx(tgtH, "SUB-CATEGORY");
+    const srcStyleCol  = smartIdx(srcH, 'ORIGINAL STYLE#', 'STYLE #', 'STYLE#', 'Style Number', 'Style');
+    const srcStatusCol = smartIdx(srcH, 'STATUS');
+    const tgtStyleCol  = smartIdx(tgtH, 'STYLE #', 'STYLE#', 'Style Number');
+    const srcSubCat    = smartIdx(srcH, 'SUB-CATEGORY', 'SubCategory', 'Sub Category');
+    const tgtSubCat    = smartIdx(tgtH, 'SUB-CATEGORY', 'SubCategory', 'Sub Category');
 
     const srcCI = {}, tgtCI = {};
-    for (const c of allCols) { srcCI[c] = idx(srcH, c); tgtCI[c] = idx(tgtH, c); }
+    for (const c of allCols) {
+      srcCI[c] = smartIdx(srcH, c);
+      tgtCI[c] = smartIdx(tgtH, c);
+    }
 
     const styleMap = {};
     for (let i = 1; i < sourceData.length; i++) {
       const row    = sourceData[i];
-      const status = row[srcStatusCol];
-      const style  = row[srcStyleCol];
+      const status = srcStatusCol >= 0 ? String(row[srcStatusCol] || '') : '';
+      const style  = srcStyleCol  >= 0 ? String(row[srcStyleCol]  || '').trim() : '';
       if (!statusAllowed.includes(status) || !style) continue;
       const entry  = {};
-      for (const c of allCols) entry[c] = row[srcCI[c]];
-      entry['SUB-CATEGORY'] = row[srcSubCat];
-      styleMap[String(style).trim()] = entry;
+      for (const c of allCols) { const v = srcCI[c] >= 0 ? row[srcCI[c]] : undefined; if (v != null && v !== '') entry[c] = v; }
+      if (srcSubCat >= 0 && row[srcSubCat] != null && row[srcSubCat] !== '') entry['SUB-CATEGORY'] = row[srcSubCat];
+      styleMap[style] = entry;
     }
 
     // ── All column indices pre-computed once ───────────────────────────────
@@ -830,31 +833,48 @@ app.post('/api/gabriel/map-sync', async (req, res) => {
 
     const ts_ = {
       period:       smartIdx(tsH, 'PERIOD'),
-      invoiceDate:  smartIdx(tsH, 'INVOICE DATE', 'Invoice Dt'),
-      invoiceTotal: smartIdx(tsH, 'INVOICE TOTAL', 'Invoice Amount'),
-      totalQty:     smartIdx(tsH, 'TOTAL QTY', 'Total Units'),
-      wholesale:    smartIdx(tsH, 'WHOLESALE', 'Unit Cost'),
-      shipDate:     smartIdx(tsH, 'SHIP DATE', 'Shipment Date'),
-      cancelDate:   smartIdx(tsH, 'CANCEL DATE'),
+      invoiceDate:  smartIdx(tsH, 'URBN INVOICE DATE', 'INVOICE DATE', 'Invoice Dt', 'Invoice Date'),
+      invoiceTotal: smartIdx(tsH, 'URBN INVOICE TOTAL', 'INVOICE TOTAL', 'Invoice Amount', 'Invoice Total'),
+      totalQty:     smartIdx(tsH, 'TOTAL QTY', 'Total Qty', 'Total Units', 'QTY'),
+      wholesale:    smartIdx(tsH, 'PO WHOLESALE', 'WHOLESALE', 'Unit Cost', 'Wholesale'),
+      shipDate:     smartIdx(tsH, 'SHIP DATE', 'Ship Date', 'Shipment Date'),
+      cancelDate:   smartIdx(tsH, 'CANCEL DATE', 'Cancel Date'),
     };
 
     const pd_ = {
-      originCountry: smartIdx(pdH, 'Origin Country'),
-      styleDesc:     smartIdx(pdH, 'Style Description'),
-      vendorColor:   smartIdx(pdH, 'Vendor Color'),
-      ipClass:       smartIdx(pdH, 'IP CLASS'),
-      customsDesc:   smartIdx(pdH, 'Customs Description'),
-      brand:         smartIdx(pdH, 'Brand'),
-      deliverTo:     smartIdx(pdH, 'Deliver To'),
-      fobPrice:      smartIdx(pdH, 'FOB Price'),
+      originCountry: smartIdx(pdH, 'Origin Country', 'ORIGIN COUNTRY', 'Country of Origin'),
+      styleDesc:     smartIdx(pdH, 'Style Description', 'STYLE DESCRIPTION', 'Description'),
+      vendorColor:   smartIdx(pdH, 'Vendor Color', 'VENDOR COLOR', 'Color'),
+      ipClass:       smartIdx(pdH, 'IP CLASS', 'IP Class'),
+      customsDesc:   smartIdx(pdH, 'Customs Description', 'CUSTOMS DESCRIPTION', 'Customs Desc'),
+      brand:         smartIdx(pdH, 'Brand', 'BRAND'),
+      deliverTo:     smartIdx(pdH, 'Deliver To', 'DELIVER TO', 'Destination'),
+      fobPrice:      smartIdx(pdH, 'FOB Price', 'FOB PRICE', 'Unit FOB'),
     };
 
     const tsMap = new Map();
-    for (let i = 1; i < tsData.length; i++) { const po = norm(tsData[i][tsPO]); if (po) tsMap.set(po, tsData[i]); }
+    if (tsPO >= 0) for (let i = 1; i < tsData.length; i++) { const po = norm(tsData[i][tsPO]); if (po) tsMap.set(po, tsData[i]); }
     const pdMap = new Map();
-    for (let i = 1; i < pdData.length; i++) { const po = norm(pdData[i][pdPO]); if (po) pdMap.set(po, pdData[i]); }
+    if (pdPO >= 0) for (let i = 1; i < pdData.length; i++) { const po = norm(pdData[i][pdPO]); if (po) pdMap.set(po, pdData[i]); }
+
+    // ptMap: find PO and CHANNEL columns by header, not hardcoded index
+    const ptH       = ptData[0] || [];
+    const ptPO      = smartIdx(ptH, 'Purchase Order', 'PO#', 'PO');
+    const ptChannel = smartIdx(ptH, 'CHANNEL', 'Channel');
     const ptMap = new Map();
-    for (let i = 1; i < ptData.length; i++) { ptMap.set(norm(ptData[i][0]), ptData[i][1]); }
+    if (ptPO >= 0 && ptChannel >= 0) {
+      for (let i = 1; i < ptData.length; i++) {
+        const po = norm(ptData[i][ptPO]);
+        if (po) ptMap.set(po, ptData[i][ptChannel]);
+      }
+    }
+
+    // helper: only write if src column found and value is non-empty
+    const setSrc = (row, tgtIdx, srcRow, srcIdx) => {
+      if (tgtIdx < 0 || srcIdx < 0) return;
+      const v = srcRow[srcIdx];
+      if (v != null && v !== '') row[tgtIdx] = v;
+    };
 
     let pass2 = 0;
     for (let i = 0; i < mapRows.length; i++) {
@@ -864,24 +884,24 @@ app.post('/api/gabriel/map-sync', async (req, res) => {
       const ts = tsMap.get(po);
       const pd = pdMap.get(po);
       if (ts) {
-        if (tgt.period        >= 0) row[tgt.period]        = ts[ts_.period]       ?? '';
-        if (tgt.invoiceDate   >= 0) row[tgt.invoiceDate]   = ts[ts_.invoiceDate]  ?? '';
-        if (tgt.invoiceTotal  >= 0) row[tgt.invoiceTotal]  = ts[ts_.invoiceTotal] ?? '';
-        if (tgt.totalQty      >= 0) row[tgt.totalQty]      = ts[ts_.totalQty]     ?? '';
-        if (tgt.wholesale     >= 0) row[tgt.wholesale]     = ts[ts_.wholesale]    ?? '';
-        if (tgt.shipDate      >= 0) row[tgt.shipDate]      = ts[ts_.shipDate]     ?? '';
-        if (tgt.cancelDate    >= 0) row[tgt.cancelDate]    = ts[ts_.cancelDate]   ?? '';
+        setSrc(row, tgt.period,       ts, ts_.period);
+        setSrc(row, tgt.invoiceDate,  ts, ts_.invoiceDate);
+        setSrc(row, tgt.invoiceTotal, ts, ts_.invoiceTotal);
+        setSrc(row, tgt.totalQty,     ts, ts_.totalQty);
+        setSrc(row, tgt.wholesale,    ts, ts_.wholesale);
+        setSrc(row, tgt.shipDate,     ts, ts_.shipDate);
+        setSrc(row, tgt.cancelDate,   ts, ts_.cancelDate);
         pass2++;
       }
       if (pd) {
-        if (tgt.originCountry >= 0) row[tgt.originCountry] = pd[pd_.originCountry] ?? '';
-        if (tgt.styleDesc     >= 0) row[tgt.styleDesc]     = pd[pd_.styleDesc]     ?? '';
-        if (tgt.vendorColor   >= 0) row[tgt.vendorColor]   = pd[pd_.vendorColor]   ?? '';
-        if (tgt.ipClass       >= 0) row[tgt.ipClass]       = pd[pd_.ipClass]       ?? '';
-        if (tgt.customsDesc   >= 0) row[tgt.customsDesc]   = pd[pd_.customsDesc]   ?? '';
-        if (tgt.brand         >= 0) row[tgt.brand]         = pd[pd_.brand]         ?? '';
-        if (tgt.deliverTo     >= 0) row[tgt.deliverTo]     = pd[pd_.deliverTo]     ?? '';
-        if (tgt.fobPrice      >= 0) row[tgt.fobPrice]      = pd[pd_.fobPrice]      ?? '';
+        setSrc(row, tgt.originCountry, pd, pd_.originCountry);
+        setSrc(row, tgt.styleDesc,     pd, pd_.styleDesc);
+        setSrc(row, tgt.vendorColor,   pd, pd_.vendorColor);
+        setSrc(row, tgt.ipClass,       pd, pd_.ipClass);
+        setSrc(row, tgt.customsDesc,   pd, pd_.customsDesc);
+        setSrc(row, tgt.brand,         pd, pd_.brand);
+        setSrc(row, tgt.deliverTo,     pd, pd_.deliverTo);
+        setSrc(row, tgt.fobPrice,      pd, pd_.fobPrice);
       }
       if (ptMap.has(po) && tgt.channel >= 0) row[tgt.channel] = ptMap.get(po);
     }
@@ -906,7 +926,19 @@ app.post('/api/gabriel/map-sync', async (req, res) => {
     }
     await Promise.all(writes);
 
-    res.json({ ok: true, newPOs: newRows.length, updated: mapRows.length, rows: mapRows.length + newRows.length });
+    res.json({
+      ok: true,
+      newPOs: newRows.length,
+      pass1Updated: pass1,
+      pass2Updated: pass2,
+      totalRows: mapRows.length + newRows.length,
+      debug: {
+        srcStyleCol, srcStatusCol, styleMapSize: Object.keys(styleMap).length,
+        tsPO, pdPO, ptPO, ptChannel,
+        tsMapSize: tsMap.size, pdMapSize: pdMap.size, ptMapSize: ptMap.size,
+        ts_, pd_,
+      }
+    });
 
   } catch (e) {
     console.error('[map-sync]', e.message);
