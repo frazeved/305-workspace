@@ -22,17 +22,17 @@
 
     /* LAYOUT */
     .layout { display: flex; gap: 20px; max-width: 1320px; margin: 0 auto; padding: 24px 20px 60px; align-items: flex-start; }
-    .sidebar { width: 210px; flex-shrink: 0; position: sticky; top: 72px; display: flex; flex-direction: column; gap: 12px; }
+    .sidebar { width: 220px; flex-shrink: 0; position: sticky; top: 72px; display: flex; flex-direction: column; gap: 12px; }
     .content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
 
-    /* SIDEBAR AGENT CARD */
+    /* AGENT CARD */
     .agent-card { background: #fff; border: 1px solid #e4e7ed; border-radius: 14px; padding: 20px 16px; text-align: center; }
     .avatar { width: 90px; height: 90px; border-radius: 50%; overflow: hidden; margin: 0 auto 12px; box-shadow: 0 0 0 4px #f5f3ff, 0 0 0 6px #ddd6fe; }
     .avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
     .agent-label { font-size: 9px; font-weight: 600; color: #7c3aed; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
     .agent-name { font-size: 18px; font-weight: 700; color: #1a1d23; margin-bottom: 3px; }
     .agent-title { font-size: 11px; color: #6b7280; line-height: 1.5; margin-bottom: 10px; }
-    .agent-tags { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-bottom: 14px; }
+    .agent-tags { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
     .agent-tag { font-size: 10px; font-weight: 500; background: #f5f6fa; border: 1px solid #e4e7ed; color: #6b7280; padding: 2px 8px; border-radius: 20px; }
 
     /* CHAT */
@@ -56,10 +56,14 @@
     .chat-send { background: #7c3aed; color: #fff; border: none; border-radius: 6px; padding: 8px; font-family: inherit; font-size: 11px; font-weight: 600; cursor: pointer; }
     .chat-send:hover { background: #6d28d9; }
 
-    /* IMAGE + ACTIONS */
+    /* IMAGE + ACTIONS CARD */
     .image-card { background: #fff; border: 1px solid #e4e7ed; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
-    .image-box { border: 2px dashed #c4b5fd; border-radius: 8px; aspect-ratio: 3/4; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f5f3ff; gap: 6px; cursor: pointer; }
+    .image-box { border: 2px dashed #c4b5fd; border-radius: 8px; min-height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f5f3ff; gap: 8px; cursor: pointer; }
     .image-box span { font-size: 10px; font-weight: 600; color: #a78bfa; }
+
+    .card-divider { height: 1px; background: #e4e7ed; margin: 2px 0; }
+
+    /* ACTION BUTTONS */
     .action-btn { width: 100%; display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 8px; border: 1px solid #e4e7ed; background: #fff; cursor: pointer; font-family: inherit; font-size: 11px; font-weight: 600; text-align: left; transition: background 0.15s; }
     .action-btn.blue { color: #1d4ed8; }
     .action-btn.blue:hover { background: #eff6ff; border-color: #bfdbfe; }
@@ -67,10 +71,19 @@
     .action-btn.sky:hover { background: #f0f9ff; border-color: #bae6fd; }
     .action-btn.red { color: #dc2626; }
     .action-btn.red:hover { background: #fef2f2; border-color: #fecaca; }
+    .action-btn.purple { color: #7c3aed; }
+    .action-btn.purple:hover { background: #f5f3ff; border-color: #ddd6fe; }
+    .action-btn.gold { color: #92400e; }
+    .action-btn.gold:hover { background: #fffbeb; border-color: #fde68a; }
+    .action-btn.save-btn { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+    .action-btn.save-btn:hover { background: #6d28d9; border-color: #6d28d9; }
     .btn-icon { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .action-btn.blue .btn-icon { background: #1d4ed8; }
     .action-btn.sky .btn-icon { background: #0284c7; }
     .action-btn.red .btn-icon { background: #fee2e2; }
+    .action-btn.purple .btn-icon { background: #f5f3ff; }
+    .action-btn.gold .btn-icon { background: #fef9c3; }
+    .action-btn.save-btn .btn-icon { background: rgba(255,255,255,0.2); }
 
     /* STYLE BAR */
     .style-bar { background: #fff; border: 1px solid #e4e7ed; border-radius: 12px; padding: 12px 18px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
@@ -84,10 +97,12 @@
     .style-input { width: 160px; padding: 7px 12px; border: 1.5px solid #e4e7ed; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 700; text-align: center; background: #f5f6fa; letter-spacing: 1px; outline: none; text-transform: uppercase; color: #1a1d23; }
     .style-input:focus { border-color: #7c3aed; background: #fff; }
     .style-input::placeholder { color: #9ca3af; font-weight: 500; letter-spacing: 0; text-transform: none; }
-    .icon-btn { width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: filter 0.15s; }
-    .icon-btn:hover { filter: brightness(0.88); }
-    .icon-btn.red { background: #dc2626; }
-    .icon-btn.purple { background: #7c3aed; }
+    .search-btn { display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: #7c3aed; color: #fff; border: none; border-radius: 8px; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.15s; white-space: nowrap; }
+    .search-btn:hover { background: #6d28d9; }
+    .search-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .search-msg { font-size: 11px; font-weight: 500; }
+    .search-msg.err { color: #dc2626; }
+    .search-msg.ok { color: #16a34a; }
 
     /* FORM CARD */
     .form-card { background: #fff; border: 1px solid #e4e7ed; border-radius: 12px; overflow: hidden; }
@@ -101,16 +116,6 @@
     .field-input input:focus, .field-input select:focus { border-color: #7c3aed; background: #fdf8ff; }
     .field-input input.yellow { background: #fffde7; border-color: #e5c84a; }
     .field-input input.yellow:focus { background: #fffde7; border-color: #c4a010; }
-
-    /* FOOTER */
-    .form-footer { background: #fff; border: 1px solid #e4e7ed; border-radius: 12px; padding: 14px 24px; display: flex; align-items: center; justify-content: flex-end; gap: 28px; }
-    .foot-action { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; }
-    .foot-label { font-size: 10px; font-weight: 700; color: #6b7280; letter-spacing: 0.8px; text-transform: uppercase; }
-    .foot-btn { width: 46px; height: 46px; border-radius: 10px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: filter 0.15s; }
-    .foot-btn:hover { filter: brightness(0.9); }
-    .foot-btn.db { background: #f5f3ff; border: 1px solid #ddd6fe; }
-    .foot-btn.tp { background: #fef9c3; border: 1px solid #fde68a; }
-    .foot-btn.save { background: #7c3aed; }
 
     @media (max-width: 900px) {
       nav { padding: 0 16px; height: auto; min-height: 52px; position: relative; }
@@ -187,10 +192,13 @@
     </div>
 
     <div class="image-card">
+      <!-- CAD IMAGE — bigger box -->
       <div class="image-box" title="CAD Image">
-        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.5" opacity="0.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.5" opacity="0.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
         <span>CAD IMAGE</span>
       </div>
+
+      <!-- PRIMARY ACTIONS -->
       <button class="action-btn blue">
         <span class="btn-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>
         TP E-MAIL
@@ -202,6 +210,24 @@
       <button class="action-btn red">
         <span class="btn-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></span>
         DELETE STYLE
+      </button>
+
+      <div class="card-divider"></div>
+
+      <!-- DATABASE / TP / SAVE -->
+      <a href="https://docs.google.com/spreadsheets/d/1y0iL7PJldbVQmPIAnJi9wvA2hvjB8_aK2bU2kxvUf5Q/edit?gid=176251554#gid=176251554" target="_blank" style="text-decoration:none;">
+        <button class="action-btn purple" style="width:100%;">
+          <span class="btn-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></span>
+          DATABASE
+        </button>
+      </a>
+      <button class="action-btn gold">
+        <span class="btn-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+        TP GENERATOR
+      </button>
+      <button class="action-btn save-btn" onclick="saveStyle()">
+        <span class="btn-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></span>
+        SAVE
       </button>
     </div>
   </aside>
@@ -216,18 +242,14 @@
       <div class="bar-spacer"></div>
       <div class="ndc-wrap">
         <span class="ndc-label">NDC Month / Year</span>
-        <input type="text" class="ndc-input" placeholder="MM/YYYY" />
+        <input type="text" id="f-ndc" class="ndc-input" placeholder="MM/YYYY" data-col="NDC MONTH/YEAR" />
       </div>
-      <button class="icon-btn red" title="All Styles">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1" fill="#fff"/><circle cx="3" cy="12" r="1" fill="#fff"/><circle cx="3" cy="18" r="1" fill="#fff"/></svg>
+      <input type="text" id="style-number" class="style-input" placeholder="STYLE #" data-col="STYLE #" onkeydown="if(event.key==='Enter') searchStyle()" />
+      <button class="search-btn" id="search-btn" onclick="searchStyle()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Search
       </button>
-      <button class="icon-btn purple" title="Edit">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      </button>
-      <input type="text" class="style-input" placeholder="STYLE #" />
-      <button class="icon-btn purple" title="Search">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      </button>
+      <span id="search-msg" class="search-msg"></span>
     </div>
 
     <!-- DEVELOPMENT PROCESS -->
@@ -237,92 +259,92 @@
 
         <div class="field">
           <span class="field-label">PHASE</span>
-          <div class="field-input"><select><option value="">--</option><option>Design</option><option>Development</option><option>Production</option></select></div>
+          <div class="field-input"><select id="f-phase" data-col="PHASE"><option value="">--</option><option>Design</option><option>Development</option><option>Production</option></select></div>
         </div>
         <div class="field">
           <span class="field-label">TP SENT TO SUPPLIER</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-tp-sent" data-col="TP SENT TO SUPPLIER" /></div>
         </div>
 
         <div class="field">
           <span class="field-label">INTERNAL PRESENTATION</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-int-pres" data-col="INTERNAL PRESENTATION" /></div>
         </div>
         <div class="field">
           <span class="field-label">TP LINK</span>
-          <div class="field-input"><input type="text" class="yellow" /></div>
+          <div class="field-input"><input type="text" id="f-tp-link" class="yellow" data-col="TP LINK" /></div>
         </div>
 
         <div class="field">
           <span class="field-label">INTERNAL APPROVAL</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-int-appr" data-col="INTERNAL APPROVAL" /></div>
         </div>
         <div class="field">
           <span class="field-label">PRINT SENT TO SUPPLIER</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-print-sent" data-col="PRINT SENT TO SUPPLIER" /></div>
         </div>
 
         <div class="field">
           <span class="field-label">BUYER PRESENTATION</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-buyer-pres" data-col="BUYER PRESENTATION" /></div>
         </div>
         <div class="field">
           <span class="field-label">COLOR APPROVED (SMS or S/O)</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-color-appr" data-col="COLOR APPROVED (SMS or S/O)" /></div>
         </div>
 
         <div class="field">
           <span class="field-label">BUYER APPROVAL</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-buyer-appr" data-col="BUYER APPROVAL" /></div>
         </div>
         <div class="field">
           <span class="field-label">PRINT INFO SENT TO MARKER MAKER</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-print-mkr-sent" data-col="PRINT INFO SENT TO MARKER MAKER" /></div>
         </div>
 
         <div class="field">
           <span class="field-label">STYLE NEEDS PROTO?</span>
-          <div class="field-input"><select><option value="">--</option><option>Yes</option><option>No</option></select></div>
+          <div class="field-input"><select id="f-proto" data-col="STYLE NEEDS PROTO?"><option value="">--</option><option>Yes</option><option>No</option></select></div>
         </div>
         <div class="field">
           <span class="field-label">PRINT INFO FROM MARKER MAKER</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-print-mkr-recv" data-col="PRINT INFO RECEIVED FROM MARKER MAKER" /></div>
         </div>
 
         <div class="field">
           <span class="field-label">PROTO NOTES</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-proto-notes" data-col="PROTO NOTES" /></div>
         </div>
         <div class="field">
           <span class="field-label">PATTERN REQUEST (Existing Styles)</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-pat-req-ex" data-col="PATTERN REQUEST (Existing Styles)" /></div>
         </div>
 
         <div class="field">
           <span class="field-label">TP DEVELOPMENT</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-tp-dev" data-col="TP DEVELOPMENT" /></div>
         </div>
         <div class="field">
           <span class="field-label">PATTERN RECEIVE (Existing Styles)</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-pat-recv-ex" data-col="PATTERN RECEIVE (Existing Styles)" /></div>
         </div>
 
         <div class="field">
           <span class="field-label">BRAND</span>
-          <div class="field-input"><select><option value="">--</option><option>Farm Rio</option><option>URBN</option></select></div>
+          <div class="field-input"><select id="f-brand" data-col="BRAND"><option value="">--</option><option>Farm Rio</option><option>URBN</option></select></div>
         </div>
         <div class="field">
           <span class="field-label">PATTERN REQUEST (New Styles)</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-pat-req-new" data-col="PATTERN REQUEST (New Styles)" /></div>
         </div>
 
         <div class="field no-border">
           <span class="field-label">APPROVAL NOTES</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-appr-notes" data-col="APPROVAL NOTES" /></div>
         </div>
         <div class="field no-border">
           <span class="field-label">PATTERN RECEIVE (New Styles)</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-pat-recv-new" data-col="PATTERN RECEIVE (New Styles)" /></div>
         </div>
 
       </div>
@@ -335,118 +357,94 @@
 
         <div class="field">
           <span class="field-label">CATEGORY</span>
-          <div class="field-input"><select><option value="">--</option></select></div>
+          <div class="field-input"><select id="f-category" data-col="CATEGORY"><option value="">--</option></select></div>
         </div>
         <div class="field">
           <span class="field-label">SEASON</span>
-          <div class="field-input"><select><option value="">--</option></select></div>
+          <div class="field-input"><select id="f-season" data-col="SEASON"><option value="">--</option></select></div>
         </div>
 
         <div class="field">
           <span class="field-label">SUB-CATEGORY</span>
-          <div class="field-input"><select><option value="">--</option></select></div>
+          <div class="field-input"><select id="f-subcat" data-col="SUB-CATEGORY"><option value="">--</option></select></div>
         </div>
         <div class="field">
           <span class="field-label">SUPPLIER</span>
-          <div class="field-input"><select><option value="">--</option></select></div>
+          <div class="field-input"><select id="f-supplier" data-col="SUPPLIER"><option value="">--</option></select></div>
         </div>
 
         <div class="field">
           <span class="field-label">FABRIC</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-fabric" data-col="FABRIC" /></div>
         </div>
         <div class="field">
           <span class="field-label">SUPPLIER B</span>
-          <div class="field-input"><select><option value="">--</option></select></div>
+          <div class="field-input"><select id="f-supplier-b" data-col="SUPPLIER B"><option value="">--</option></select></div>
         </div>
 
         <div class="field">
           <span class="field-label">PRINT TYPE</span>
-          <div class="field-input"><select><option value="">--</option></select></div>
+          <div class="field-input"><select id="f-print-type" data-col="PRINT TYPE"><option value="">--</option></select></div>
         </div>
         <div class="field">
           <span class="field-label">DIFFICULTY</span>
-          <div class="field-input"><select><option value="">--</option></select></div>
+          <div class="field-input"><select id="f-difficulty" data-col="DIFFICULTY"><option value="">--</option></select></div>
         </div>
 
         <div class="field">
           <span class="field-label">PRINT NAME</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-print-name" data-col="PRINT NAME" /></div>
         </div>
         <div class="field">
           <span class="field-label">DESIGN NOTES</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-design-notes" data-col="DESIGN NOTES" /></div>
         </div>
 
         <div class="field">
           <span class="field-label">CAD URL</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-cad-url" data-col="CAD URL" /></div>
         </div>
         <div class="field">
           <span class="field-label">LINK A/W INTERNAL</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-link-aw-int" data-col="LINK A/W INTERNAL" /></div>
         </div>
 
         <div class="field">
           <span class="field-label">UNITS QUANTITY</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-units" data-col="UNITS QUANTITY" /></div>
         </div>
         <div class="field">
           <span class="field-label">LINK STYLE FOLDER</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-link-folder" data-col="LINK STYLE FOLDER" /></div>
         </div>
 
         <div class="field">
           <span class="field-label">TECH PACK MODEL</span>
-          <div class="field-input"><select><option value="">--</option></select></div>
+          <div class="field-input"><select id="f-tp-model" data-col="TECH PACK MODEL"><option value="">--</option></select></div>
         </div>
         <div class="field">
           <span class="field-label">LINK A/W SUPPLIER</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-link-aw-sup" data-col="LINK A/W SUPPLIER" /></div>
         </div>
 
         <div class="field">
           <span class="field-label">COLOR GROUP</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-color-group" data-col="COLOR GROUP" /></div>
         </div>
         <div class="field">
           <span class="field-label">PRODUCTION STATUS</span>
-          <div class="field-input"><select><option value="">--</option></select></div>
+          <div class="field-input"><select id="f-prod-status" data-col="PRODUCTION STATUS"><option value="">--</option></select></div>
         </div>
 
         <div class="field no-border">
           <span class="field-label">YEAR</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-year" data-col="YEAR" /></div>
         </div>
         <div class="field no-border">
           <span class="field-label">MONTH</span>
-          <div class="field-input"><input type="text" /></div>
+          <div class="field-input"><input type="text" id="f-month" data-col="MONTH" /></div>
         </div>
 
-      </div>
-    </div>
-
-    <!-- FOOTER -->
-    <div class="form-footer">
-      <div class="foot-action">
-        <a href="https://docs.google.com/spreadsheets/d/1y0iL7PJldbVQmPIAnJi9wvA2hvjB8_aK2bU2kxvUf5Q/edit?gid=176251554#gid=176251554" target="_blank" style="text-decoration:none;">
-          <button class="foot-btn db">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-          </button>
-        </a>
-        <span class="foot-label">Database</span>
-      </div>
-      <div class="foot-action">
-        <button class="foot-btn tp">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a37f00" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        </button>
-        <span class="foot-label">TP Generator</span>
-      </div>
-      <div class="foot-action">
-        <button class="foot-btn save">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        </button>
-        <span class="foot-label">Save</span>
       </div>
     </div>
 
@@ -454,6 +452,62 @@
 </div>
 
 <script>
+async function searchStyle() {
+  const styleNum = document.getElementById('style-number').value.trim();
+  if (!styleNum) return;
+  const btn = document.getElementById('search-btn');
+  const msg = document.getElementById('search-msg');
+  btn.disabled = true;
+  btn.textContent = 'Searching...';
+  msg.textContent = '';
+  msg.className = 'search-msg';
+  try {
+    const res = await fetch(`/api/rebeca/search-style?style=${encodeURIComponent(styleNum)}`);
+    const data = await res.json();
+    if (!res.ok) {
+      msg.textContent = data.error || 'Not found';
+      msg.className = 'search-msg err';
+      return;
+    }
+    populateForm(data.style);
+    msg.textContent = 'Loaded';
+    msg.className = 'search-msg ok';
+  } catch (e) {
+    msg.textContent = 'Error connecting';
+    msg.className = 'search-msg err';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Search';
+  }
+}
+
+function populateForm(style) {
+  document.querySelectorAll('[data-col]').forEach(el => {
+    const col = el.getAttribute('data-col');
+    const val = style[col];
+    if (val === undefined || val === null) return;
+    if (el.tagName === 'SELECT') {
+      // Try to find matching option; if not found, add it temporarily
+      let found = false;
+      for (const opt of el.options) {
+        if (opt.value === val || opt.text === val) { el.value = opt.value; found = true; break; }
+      }
+      if (!found && val) {
+        const opt = document.createElement('option');
+        opt.value = val; opt.text = val;
+        el.appendChild(opt);
+        el.value = val;
+      }
+    } else {
+      el.value = val;
+    }
+  });
+}
+
+function saveStyle() {
+  alert('Save coming soon.');
+}
+
 async function sendChat() {
   const name = document.getElementById('chat-name').value.trim();
   const email = document.getElementById('chat-email').value.trim();

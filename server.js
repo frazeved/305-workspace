@@ -641,6 +641,39 @@ app.post('/api/fedex/create-label', async (req, res) => {
   }
 });
 
+// ─── Rebeca: Search Style in Design Database ─────────────────────────────────
+app.get('/api/rebeca/search-style', async (req, res) => {
+  const styleNum = String(req.query.style || '').trim().toUpperCase();
+  if (!styleNum) return res.status(400).json({ error: 'Style # required' });
+  if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+    return res.status(500).json({ error: 'Google credentials not configured' });
+  }
+  try {
+    const sa     = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+    const auth   = new google.auth.GoogleAuth({ credentials: sa, scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'] });
+    const sheets = google.sheets({ version: 'v4', auth });
+    const r = await sheets.spreadsheets.values.get({
+      spreadsheetId: SHEET_ID,
+      range: `'Design DataBase'`,
+      valueRenderOption: 'FORMATTED_VALUE',
+      dateTimeRenderOption: 'FORMATTED_STRING',
+    });
+    const rows = r.data.values || [];
+    if (rows.length < 2) return res.status(404).json({ error: 'Sheet is empty' });
+    const headers = rows[0].map(h => String(h).trim());
+    const styleCol = headers.findIndex(h => h.toUpperCase() === 'STYLE #');
+    if (styleCol < 0) return res.status(500).json({ error: 'STYLE # column not found' });
+    const row = rows.slice(1).find(r => String(r[styleCol] || '').trim().toUpperCase() === styleNum);
+    if (!row) return res.status(404).json({ error: `Style "${styleNum}" not found` });
+    const result = {};
+    headers.forEach((h, i) => { result[h] = row[i] ?? ''; });
+    res.json({ style: result });
+  } catch (e) {
+    console.error('[rebeca/search-style]', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ─── Gabriel: MAP DATA (chart feed) ──────────────────────────────────────────
 app.get('/api/gabriel/map-data', async (req, res) => {
   if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
