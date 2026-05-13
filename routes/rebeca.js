@@ -209,12 +209,11 @@ router.post('/generate-tp', async (req, res) => {
   const {
     style, model, category, subCategory, fabric,
     printType, printName, supplier, cadUrl,
-    printSentToSupplier, tpSentToSupplier, linkStyleFolder,
+    printSentToSupplier, tpSentToSupplier,
   } = req.body;
 
-  if (!style)           return res.status(400).json({ error: 'STYLE # required' });
-  if (!model)           return res.status(400).json({ error: 'TECH PACK MODEL required' });
-  if (!linkStyleFolder) return res.status(400).json({ error: 'LINK STYLE FOLDER is required — fill in the Drive folder URL for this style first' });
+  if (!style) return res.status(400).json({ error: 'STYLE # required' });
+  if (!model) return res.status(400).json({ error: 'TECH PACK MODEL required' });
 
   const norm = s => (s || '').replace(/ /g, ' ').replace(/\s+/g, ' ').toUpperCase().trim();
 
@@ -225,10 +224,7 @@ router.post('/generate-tp', async (req, res) => {
   const templateId = MODEL_TEMPLATES[norm(model)];
   if (!templateId) return res.status(400).json({ error: `Unknown model: "${model}"` });
 
-  // Extract folder ID from LINK STYLE FOLDER Drive URL
-  const folderIdMatch = (linkStyleFolder || '').match(/\/folders\/([a-zA-Z0-9_-]+)/);
-  if (!folderIdMatch) return res.status(400).json({ error: 'LINK STYLE FOLDER must be a valid Google Drive folder URL' });
-  const folderId = folderIdMatch[1];
+  const folderId = '1NYSHD3JYmlhm1PvHxgYrDF89WbVGM6A3';
 
   // Extract Drive file ID from CAD URL (Drive sharing link or uc?id= URL)
   const extractFileId = url => {
@@ -268,7 +264,7 @@ router.post('/generate-tp', async (req, res) => {
     const cleanStyle = (style || '').replace(/^[A-Za-z]+-?/, '');
     const copyName = `${safe(norm(model))} – ${safe(supplier || '')} – ${safe(cleanStyle)}`;
 
-    // Copy template into LINK STYLE FOLDER
+    // Copy template into destination folder
     const copyRes = await drive.files.copy({
       fileId: templateId,
       supportsAllDrives: true,

@@ -856,10 +856,8 @@ async function generateTP() {
     return el ? getSelectValue(el) : '';
   };
 
-  const model          = getVal('TECH PACK MODEL');
-  const linkStyleFolder = getVal('LINK STYLE FOLDER');
-  if (!model)           { alert('TECH PACK MODEL is required.'); return; }
-  if (!linkStyleFolder) { alert('LINK STYLE FOLDER is required — fill in the Drive folder URL for this style first.'); return; }
+  const model = getVal('TECH PACK MODEL');
+  if (!model) { alert('TECH PACK MODEL is required.'); return; }
 
   const btn     = document.querySelector('.action-btn.gold');
   const msg     = document.getElementById('search-msg');
@@ -885,11 +883,11 @@ async function generateTP() {
         cadUrl:              getVal('CAD IMAGE'),
         printSentToSupplier: getVal('PRINT SENT TO SUPPLIER'),
         tpSentToSupplier:    getVal('TP SENT TO SUPPLIER'),
-        linkStyleFolder,
       }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Generation failed');
+    window.open(data.folderUrl, '_blank');
     msg.innerHTML = `TP generated — <a href="${data.presentationUrl}" target="_blank" style="color:#15803d;font-weight:700;">Open TP</a> &nbsp;·&nbsp; <a href="${data.folderUrl}" target="_blank" style="color:#15803d;">Open Folder</a>`;
     msg.className = 'search-msg ok';
   } catch (e) {
