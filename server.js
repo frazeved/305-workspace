@@ -801,17 +801,25 @@ app.post('/api/paul/draft-email', async (req, res) => {
     const buyerList = (buyers[mapping.brand]?.[mapping.category]) || [];
     if (!buyerList.length) return res.status(400).json({ error: `No buyer emails found for category: ${mapping.category}` });
 
-    const toEmails   = buyerList.map(b => b.email);
-    const firstNames = buyerList.map(b => b.name.split(' ')[0]);
-    const greeting   = firstNames.length === 1
-      ? firstNames[0]
-      : firstNames.slice(0, -1).join(', ') + ' and ' + firstNames[firstNames.length - 1];
+    const toEmails  = buyerList.map(b => b.email);
+    const leadFirst = buyerList[0].name.split(' ')[0];
 
-    // Subject uses STYLE# (not FedEx tracking) — matches email thread convention
-    const subject = `FARM RIO // Tracking Number ${style || tracking} - ${sampleType}`;
+    // Friendly category label for greeting: "DRESS & ROMPER" → "dress"
+    const CAT_LABEL = {
+      'DRESS & ROMPER':                     'dress',
+      'SWIMWEAR':                           'swim',
+      'BLOUSES & SHIRTS':                   'blouses',
+      'PANTS & JUMPSUIT':                   'pants',
+      'SKIRTS & SHORTS':                    'skirts',
+      'LOUNGE':                             'lounge',
+      'PANTS, JUMPSUIT, SKIRTS & SHORTS':   'bottoms',
+    };
+    const catLabel = CAT_LABEL[mapping.category] || mapping.category.toLowerCase();
+
+    const subject = `FARM RIO // Style# ${style || ''} - Tracking ${tracking} - ${sampleType}`;
 
     const htmlBody =
-      `<p>Hi ${greeting} &amp; team,</p>` +
+      `<p>Hello ${leadFirst} and ${catLabel} team,</p>` +
       `<p>We sent you the style below by tracking <strong>${tracking}</strong><br>` +
       `<strong>${style || ''}</strong>${style ? ' - ' : ''}${sampleType}</p>` +
       (disclaimer ? `<p>${disclaimer}</p>` : '') +
