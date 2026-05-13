@@ -697,13 +697,16 @@ function populateForm(style) {
     }
   });
   // Parse NDC MONTH/YEAR → set month + year selects
-  const ndcVal = style['NDC MONTH/YEAR'] || '';
-  const ndcParts = ndcVal.split('/');
-  if (ndcParts.length === 2) {
+  // Use fuzzy key match in case sheet column name has spacing variations
+  const ndcKey = Object.keys(style).find(k => k.toUpperCase().replace(/\s+/g,'').includes('NDC'));
+  const ndcRaw = ndcKey ? String(style[ndcKey] || '') : '';
+  const ndcMatch = ndcRaw.match(/^(\d{1,2})[\/](\d{4})$/);
+  if (ndcMatch) {
     const monEl = document.getElementById('f-ndc-month');
     const yrEl  = document.getElementById('f-ndc-year');
-    if (monEl) monEl.value = ndcParts[0].padStart(2, '0');
-    if (yrEl)  yrEl.value  = ndcParts[1];
+    if (monEl) monEl.value = ndcMatch[1].padStart(2, '0');
+    if (yrEl)  yrEl.value  = ndcMatch[2];
+    updateNdc();
   }
 
   // Show CAD image from CAD URL field
