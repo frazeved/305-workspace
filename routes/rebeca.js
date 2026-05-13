@@ -441,58 +441,62 @@ router.post('/generate-tp', async (req, res) => {
     // 5. Generate the modified PPTX as a Buffer
     const pptxBuf = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
 
-    // 6. Resumable upload — reliable for any file size, no multipart body issues
     const safe = s => (s || '').replace(/[\\/:*?"<>|#\[\]\r\n]/g, '').trim();
     const cleanStyle = (style || '').replace(/^[A-Za-z]+-?/, '');
     const fileName = `${safe(norm(model))} - ${safe(supplier || '')} - ${safe(cleanStyle)}`;
-
-    const { token: accessToken } = await authClient.getAccessToken();
     const pptxMime = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
 
-    // Step 6a: initiate the resumable session (metadata only)
+    // 6. Copy the template into the folder first (copy always works; avoids
+    //    Shared Drive create-with-parents issues).
+    let copyId;
+    try {
+      const copyRes = await drive.files.copy({
+        fileId: templateId,
+        supportsAllDrives: true,
+        requestBody: { name: fileName, parents: [folderId] },
+      });
+      copyId = copyRes.data.id;
+    } catch (e) {
+      const detail = e.response?.data?.error?.message || e.message;
+      return res.status(500).json({ error: `Copy failed: ${detail}` });
+    }
+
+    // 7. Update the copy's content with the processed PPTX (resumable PATCH).
+    //    No parents needed — file already exists in the right folder.
+    const { token: accessToken } = await authClient.getAccessToken();
+
     const initResp = await fetch(
-      `https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true&fields=id`,
+      `https://www.googleapis.com/upload/drive/v3/files/${copyId}?uploadType=resumable&supportsAllDrives=true&fields=id`,
       {
-        method: 'POST',
+        method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json; charset=UTF-8',
           'X-Upload-Content-Type': pptxMime,
           'X-Upload-Content-Length': String(pptxBuf.length),
         },
-        body: JSON.stringify({
-          name: fileName,
-          mimeType: 'application/vnd.google-apps.presentation',
-          parents: [folderId],
-        }),
+        body: '{}',
       }
     );
     if (!initResp.ok) {
-      const initJson = await initResp.json().catch(() => ({}));
-      const detail = initJson?.error?.message || initResp.statusText;
-      console.error('[rebeca/generate-tp] upload init failed:', detail, JSON.stringify(initJson));
-      return res.status(500).json({ error: `Upload init failed: ${detail}` });
+      const d = await initResp.json().catch(() => ({}));
+      return res.status(500).json({ error: `Update init failed: ${d?.error?.message || initResp.statusText}` });
     }
     const uploadUri = initResp.headers.get('location');
-    if (!uploadUri) return res.status(500).json({ error: 'Drive returned no upload URI' });
+    if (!uploadUri) return res.status(500).json({ error: 'No upload URI from Drive' });
 
-    // Step 6b: PUT the PPTX content to the upload URI
     const putResp = await fetch(uploadUri, {
       method: 'PUT',
-      headers: {
-        'Content-Type': pptxMime,
-        'Content-Length': String(pptxBuf.length),
-      },
+      headers: { 'Content-Type': pptxMime, 'Content-Length': String(pptxBuf.length) },
       body: pptxBuf,
     });
     const putData = await putResp.json().catch(() => ({}));
     if (!putResp.ok) {
       const detail = putData?.error?.message || putResp.statusText;
-      console.error('[rebeca/generate-tp] upload PUT failed:', detail, JSON.stringify(putData));
-      return res.status(500).json({ error: `Upload PUT failed: ${detail}` });
+      return res.status(500).json({ error: `Content update failed: ${detail}` });
     }
 
-    const newId = putData.id;
+    const newId = putData.id || copyId;
     res.json({
       ok: true,
       presentationUrl: `https://docs.google.com/presentation/d/${newId}/edit`,
@@ -581,13 +585,19 @@ router.get('/dashboard', async (req, res) => {
       if (noPrint) monthMap[key].missingPrint++;
     });
 
-    const months = Object.entries(monthMap)
-      .map(([key, stats]) => {
-        const m = parseInt(key);
-        return { label: MONTH_NAMES[m] || String(m), sortKey: m, ...stats };
-      })
-      .sort((a, b) => a.sortKey - b.sortKey)
-      .slice(-4);
+    // Always show the 4 calendar months starting from next month
+    const nowMonth = new Date().getMonth() + 1; // 1-12
+    const months = [1, 2, 3, 4].map(i => {
+      const m = (nowMonth % 12) + i; // next month, then +1, +2, +3
+      const mm = m > 12 ? m - 12 : m;  // wrap Dec→Jan
+      return {
+        label: MONTH_NAMES[mm],
+        sortKey: mm,
+        count:        monthMap[mm]?.count        || 0,
+        missingTp:    monthMap[mm]?.missingTp    || 0,
+        missingPrint: monthMap[mm]?.missingPrint || 0,
+      };
+    });
 
     res.json({ total, missingTp, missingPrint, months });
   } catch (e) {
