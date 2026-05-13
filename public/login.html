@@ -12,7 +12,7 @@
       --bg: #f5f6fa; --surface: #fff; --border: #e4e7ed;
       --text: #1a1d23; --muted: #6b7280;
       --accent: #0891b2; --accent-hover: #0e7490; --accent-light: #ecfeff;
-      --red: #dc2626; --red-lt: #fee2e2;
+      --red: #dc2626; --red-lt: #fee2e2; --green: #16a34a; --green-lt: #dcfce7;
     }
     body {
       font-family: 'Inter', sans-serif;
@@ -99,10 +99,8 @@
     .btn:hover { background: var(--accent-hover); }
     .btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    .error-msg {
+    .msg {
       display: none;
-      background: var(--red-lt);
-      color: var(--red);
       font-size: 13px;
       font-weight: 500;
       padding: 10px 14px;
@@ -110,12 +108,45 @@
       margin-bottom: 14px;
       text-align: center;
     }
-    .error-msg.show { display: block; }
+    .msg.error  { display: block; background: var(--red-lt);   color: var(--red);   }
+    .msg.success{ display: block; background: var(--green-lt); color: var(--green); }
+
+    /* ── Change-password overlay ── */
+    .overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .overlay.show { display: flex; }
+    .modal {
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 36px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+    }
+    .modal-title {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .modal-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
 
     @media (max-width: 480px) {
-      .card { padding: 32px 24px; border-radius: 16px; }
-      input { font-size: 16px; padding: 13px 14px; }
-      .btn { font-size: 16px; padding: 14px; }
+      .card  { padding: 32px 24px; border-radius: 16px; }
+      .modal { padding: 28px 20px; }
+      input  { font-size: 16px; padding: 13px 14px; }
+      .btn   { font-size: 16px; padding: 14px; }
     }
   </style>
 </head>
@@ -126,7 +157,7 @@
       <div class="brand-sub">Sign in to continue</div>
     </div>
 
-    <div class="error-msg" id="error-msg">Invalid email or password.</div>
+    <div class="msg" id="login-msg"></div>
 
     <form id="login-form" onsubmit="handleLogin(event)">
       <div class="form-group">
@@ -141,17 +172,37 @@
     </form>
   </div>
 
+  <!-- Force change-password overlay -->
+  <div class="overlay" id="change-overlay">
+    <div class="modal">
+      <div class="modal-title">Create your password</div>
+      <div class="modal-sub">Your account is using a temporary password. Please set a new one before continuing.</div>
+
+      <div class="msg" id="cp-msg"></div>
+
+      <div class="form-group">
+        <label for="new-pass">New Password</label>
+        <input id="new-pass" type="password" placeholder="At least 6 characters" autocomplete="new-password" />
+      </div>
+      <div class="form-group">
+        <label for="confirm-pass">Confirm Password</label>
+        <input id="confirm-pass" type="password" placeholder="Repeat new password" autocomplete="new-password" />
+      </div>
+      <button class="btn" id="cp-btn" onclick="handleChangePassword()">Save &amp; Continue</button>
+    </div>
+  </div>
+
   <script>
     async function handleLogin(e) {
       e.preventDefault();
       const btn   = document.getElementById('submit-btn');
-      const err   = document.getElementById('error-msg');
+      const msg   = document.getElementById('login-msg');
       const email = document.getElementById('email').value.trim();
       const pass  = document.getElementById('password').value;
 
       btn.disabled = true;
       btn.textContent = 'Signing in…';
-      err.classList.remove('show');
+      msg.className = 'msg';
 
       try {
         const res  = await fetch('/api/login', {
@@ -161,12 +212,59 @@
         });
         const json = await res.json();
         if (!res.ok) throw new Error(json.error || 'Login failed');
-        window.location.href = '/';
-      } catch (e) {
-        err.textContent = e.message;
-        err.classList.add('show');
+
+        if (json.mustChangePassword) {
+          document.getElementById('change-overlay').classList.add('show');
+          btn.disabled = false;
+          btn.textContent = 'Sign In';
+        } else {
+          window.location.href = '/';
+        }
+      } catch (err) {
+        msg.textContent = err.message;
+        msg.className = 'msg error';
         btn.disabled = false;
         btn.textContent = 'Sign In';
+      }
+    }
+
+    async function handleChangePassword() {
+      const btn     = document.getElementById('cp-btn');
+      const msg     = document.getElementById('cp-msg');
+      const newPass = document.getElementById('new-pass').value;
+      const confirm = document.getElementById('confirm-pass').value;
+
+      msg.className = 'msg';
+
+      if (!newPass || newPass.length < 6) {
+        msg.textContent = 'Password must be at least 6 characters.';
+        msg.className = 'msg error';
+        return;
+      }
+      if (newPass !== confirm) {
+        msg.textContent = 'Passwords do not match.';
+        msg.className = 'msg error';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+
+      try {
+        const currentPass = document.getElementById('password').value;
+        const res  = await fetch('/api/change-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ currentPassword: currentPass, newPassword: newPass }),
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Failed to save password');
+        window.location.href = '/';
+      } catch (err) {
+        msg.textContent = err.message;
+        msg.className = 'msg error';
+        btn.disabled = false;
+        btn.textContent = 'Save & Continue';
       }
     }
   </script>

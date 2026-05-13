@@ -7,9 +7,10 @@ const XLSX     = require('xlsx');
 const { google } = require('googleapis');
 const session  = require('express-session');
 
-const suppliers  = require('./contacts/suppliers');
-const team305    = require('./contacts/team305');
-const TEAM_USERS = require('./contacts/users');
+const suppliers   = require('./contacts/suppliers');
+const team305     = require('./contacts/team305');
+const TEAM_USERS  = require('./contacts/users');
+const AUTH_CONFIG = require('./contacts/authUsers');
 
 const app = express();
 app.use(express.json());
@@ -20,27 +21,56 @@ app.use(session({
   cookie: { maxAge: 24 * 60 * 60 * 1000 },
 }));
 
-// ─── Auth users ───────────────────────────────────────────────────────────────
-const AUTH_USERS = [
-  {
-    email:    'support@creativetwotwelve.com',
-    password: process.env.ADMIN_PASSWORD || '',
-    name:     'Flavio Azevedo',
-    role:     'admin',
-  },
-  {
-    email:    'business@creativetwotwelve.com',
-    password: process.env.MANUELA_PASSWORD || '',
-    name:     'Manuela Carvalho',
-    role:     'user',
-  },
-  {
-    email:    'samples@creativetwotwelve.com',
-    password: process.env.IGO_PASSWORD || '',
-    name:     'Igo Gardel',
-    role:     'user',
-  },
-];
+// ─── Auth users & password store (Google Sheets persistence) ─────────────────
+const AUTH_SHEET_TAB = 'WORKSPACE AUTH';
+let passwordMap = {}; // email → changed password (overrides env var default)
+
+async function loadPasswords() {
+  if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON) return;
+  try {
+    const sa     = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+    const auth   = new google.auth.GoogleAuth({ credentials: sa, scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'] });
+    const sheets = google.sheets({ version: 'v4', auth });
+    const r = await sheets.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: `'${AUTH_SHEET_TAB}'!A:B` });
+    for (const [email, pwd] of (r.data.values || []).slice(1)) {
+      if (email && pwd) passwordMap[email.toLowerCase()] = pwd;
+    }
+  } catch (_) {} // tab may not exist yet — that's fine
+}
+
+async function savePassword(email, newPwd) {
+  const sa     = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+  const auth   = new google.auth.GoogleAuth({ credentials: sa, scopes: ['https://www.googleapis.com/auth/spreadsheets'] });
+  const sheets = google.sheets({ version: 'v4', auth });
+  // Ensure tab exists
+  try {
+    const info = await sheets.spreadsheets.get({ spreadsheetId: SHEET_ID });
+    if (!info.data.sheets?.some(s => s.properties?.title === AUTH_SHEET_TAB)) {
+      await sheets.spreadsheets.batchUpdate({ spreadsheetId: SHEET_ID, requestBody: { requests: [{ addSheet: { properties: { title: AUTH_SHEET_TAB } } }] } });
+      await sheets.spreadsheets.values.update({ spreadsheetId: SHEET_ID, range: `'${AUTH_SHEET_TAB}'!A1`, valueInputOption: 'RAW', requestBody: { values: [['EMAIL', 'PASSWORD']] } });
+    }
+  } catch (_) {}
+  // Upsert row
+  const r = await sheets.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: `'${AUTH_SHEET_TAB}'!A:B` });
+  const rows = r.data.values || [];
+  const idx  = rows.slice(1).findIndex(row => (row[0] || '').toLowerCase() === email.toLowerCase());
+  if (idx >= 0) {
+    await sheets.spreadsheets.values.update({ spreadsheetId: SHEET_ID, range: `'${AUTH_SHEET_TAB}'!B${idx + 2}`, valueInputOption: 'RAW', requestBody: { values: [[newPwd]] } });
+  } else {
+    await sheets.spreadsheets.values.append({ spreadsheetId: SHEET_ID, range: `'${AUTH_SHEET_TAB}'!A:B`, valueInputOption: 'RAW', insertDataOption: 'INSERT_ROWS', requestBody: { values: [[email, newPwd]] } });
+  }
+  passwordMap[email.toLowerCase()] = newPwd;
+}
+
+loadPasswords();
+
+const { DEFAULT_PASSWORD, users: AUTH_USERS_CONFIG } = AUTH_CONFIG;
+const AUTH_USERS = AUTH_USERS_CONFIG.map(u => ({
+  email:    u.email,
+  password: process.env[u.envVar] || DEFAULT_PASSWORD,
+  name:     u.name,
+  role:     u.role,
+}));
 
 // ─── Auth middleware ──────────────────────────────────────────────────────────
 const OPEN_PATHS = ['/login', '/api/login', '/api/logout'];
@@ -59,17 +89,44 @@ app.get('/login', (req, res) => {
 
 app.post('/api/login', (req, res) => {
   const { email, password } = req.body || {};
-  const user = AUTH_USERS.find(
-    u => u.email.toLowerCase() === (email || '').toLowerCase().trim()
-      && u.password === password
-  );
-  if (!user) return res.status(401).json({ error: 'Invalid email or password' });
+  const user = AUTH_USERS.find(u => u.email.toLowerCase() === (email || '').toLowerCase().trim());
+  if (!user) return res.status(401).json({ error: 'Email not found' });
+  const stored = passwordMap[user.email.toLowerCase()] || user.password;
+  if (stored !== password) return res.status(401).json({ error: 'Incorrect password' });
+  const mustChangePassword = stored === DEFAULT_PASSWORD;
   req.session.user = { email: user.email, name: user.name, role: user.role };
-  res.json({ ok: true, name: user.name });
+  res.json({ ok: true, name: user.name, mustChangePassword });
 });
 
 app.get('/api/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/login'));
+});
+
+app.get('/api/me', (req, res) => {
+  if (!req.session?.user) return res.status(401).json({ error: 'Not authenticated' });
+  res.json(req.session.user);
+});
+
+app.post('/api/change-password', async (req, res) => {
+  if (!req.session?.user) return res.status(401).json({ error: 'Not authenticated' });
+  const { currentPassword, newPassword } = req.body || {};
+  if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Current and new password are required' });
+  if (newPassword.length < 6) return res.status(400).json({ error: 'New password must be at least 6 characters' });
+
+  const email  = req.session.user.email;
+  const user   = AUTH_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
+  if (!user) return res.status(401).json({ error: 'User not found' });
+
+  const stored = passwordMap[email.toLowerCase()] || user.password;
+  if (stored !== currentPassword) return res.status(401).json({ error: 'Current password is incorrect' });
+
+  try {
+    await savePassword(email, newPassword);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('[change-password]', e.message);
+    res.status(500).json({ error: 'Failed to save new password. Try again.' });
+  }
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
