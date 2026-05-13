@@ -196,7 +196,7 @@ router.delete('/delete-style', async (req, res) => {
   res.json({ ok: true, deletedFrom, skipped });
 });
 
-// TP Generator — copy template → replaceAllText via Slides API → done
+// TP Generator — export PPTX → edit tokens → upload to SA drive → move to folder
 router.post('/generate-tp', async (req, res) => {
   if (!requireCreds(res)) return;
 
@@ -241,6 +241,10 @@ router.post('/generate-tp', async (req, res) => {
     if (!isNaN(d)) { d.setDate(d.getDate() + 14); sampleDueDate = fmtDate(d); }
   }
 
+  const escapeXml = s => String(s ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+
   const tokens = {
     '{{STYLE}}':                  style,
     '{{STYLE #}}':                style,
@@ -259,97 +263,192 @@ router.post('/generate-tp', async (req, res) => {
     '{{SAMPLE_SIZE}}':            'SMALL 4/6',
     '{{TECHNICAL_DESIGNER}}':     'bertha@creativetwotwelve.com',
     '{{CAD_URL}}':                cadUrl       || '',
+    '{{CAD_IMAGE}}':              '',
+  };
+
+  // Merge split text runs inside a paragraph so tokens aren't broken across runs
+  const mergeRunsInPara = paraXml => {
+    const runRe = /<a:r>([\s\S]*?)<\/a:r>/g;
+    const runMatches = [];
+    let m;
+    while ((m = runRe.exec(paraXml)) !== null)
+      runMatches.push({ start: m.index, end: m.index + m[0].length, inner: m[1] });
+    if (runMatches.length < 2) return paraXml;
+    const texts = runMatches.map(r => {
+      const tm = r.inner.match(/<a:t[^>]*>([\s\S]*?)<\/a:t>/);
+      return tm ? tm[1] : '';
+    });
+    const combined = texts.join('');
+    if (!Object.keys(tokens).some(k => combined.includes(k))) return paraXml;
+    const rPrM = runMatches[0].inner.match(/<a:rPr[\s\S]*?(?:\/>|<\/a:rPr>)/);
+    const rPr  = rPrM ? rPrM[0] : '';
+    return (
+      paraXml.slice(0, runMatches[0].start) +
+      `<a:r>${rPr}<a:t>${combined}</a:t></a:r>` +
+      paraXml.slice(runMatches[runMatches.length - 1].end)
+    );
+  };
+
+  const replaceTokens = xml => {
+    let out = xml.replace(/<a:p(?:\s[^>]*)?>[\s\S]*?<\/a:p>/g, mergeRunsInPara);
+    for (const [ph, val] of Object.entries(tokens)) {
+      const esc = ph.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      out = out.replace(new RegExp(esc, 'g'), escapeXml(String(val ?? '')));
+    }
+    return out;
   };
 
   try {
     const sa = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
     const auth = new google.auth.GoogleAuth({
       credentials: sa,
-      scopes: [
-        'https://www.googleapis.com/auth/drive',
-        'https://www.googleapis.com/auth/presentations',
-      ],
+      scopes: ['https://www.googleapis.com/auth/drive'],
     });
     const authClient = await auth.getClient();
-    const drive  = google.drive({ version: 'v3', auth: authClient });
-    const slides = google.slides({ version: 'v1', auth: authClient });
+    const drive = google.drive({ version: 'v3', auth: authClient });
 
-    // Step 1: Copy template into destination folder
+    // Step 1: Export template as PPTX
+    let exportResp;
+    try {
+      exportResp = await drive.files.export(
+        { fileId: templateId, mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' },
+        { responseType: 'arraybuffer' }
+      );
+    } catch (e) {
+      const detail = e.response?.data?.error?.message || e.message;
+      return res.status(500).json({ error: `Export failed: ${detail}` });
+    }
+
+    // Step 2: Open ZIP, edit tokens, optionally embed CAD image
+    const JSZip = require('jszip');
+    const zip = await JSZip.loadAsync(Buffer.from(exportResp.data));
+
+    // Download CAD image if provided
+    let cadImgBuf = null, cadImgMime = 'image/png', cadImgExt = 'png';
+    if (cadFileId) {
+      try {
+        const imgResp = await drive.files.get(
+          { fileId: cadFileId, alt: 'media' },
+          { responseType: 'arraybuffer' }
+        );
+        cadImgBuf = Buffer.from(imgResp.data);
+        const ct  = (imgResp.headers?.['content-type'] || 'image/png').split(';')[0].trim();
+        cadImgMime = ct;
+        cadImgExt  = (ct.includes('jpg') || ct.includes('jpeg')) ? 'jpg' : 'png';
+      } catch (e) {
+        console.warn('[rebeca/generate-tp] CAD download failed:', e.message);
+      }
+    }
+
+    const INCH = 914400;
+    let imgIdx = 500, ctNeedsUpdate = false;
+
+    const slideKeys = Object.keys(zip.files)
+      .filter(f => /^ppt\/slides\/slide\d+\.xml$/.test(f))
+      .sort((a, b) => parseInt(a.match(/slide(\d+)/)[1]) - parseInt(b.match(/slide(\d+)/)[1]));
+
+    for (const slidePath of slideKeys) {
+      let xml = await zip.files[slidePath].async('string');
+      const slideNum = slidePath.match(/slide(\d+)\.xml$/)[1];
+      const relsPath = `ppt/slides/_rels/slide${slideNum}.xml.rels`;
+      let relsXml = zip.files[relsPath]
+        ? await zip.files[relsPath].async('string')
+        : `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>`;
+
+      // Replace {{CAD_IMAGE}} placeholder shape with actual image element
+      let cadInserted = false;
+      if (cadImgBuf) {
+        xml = xml.replace(/<p:sp>[\s\S]*?<\/p:sp>/g, shapeXml => {
+          if (cadInserted) return shapeXml;
+          const aRe = /<a:t[^>]*>([\s\S]*?)<\/a:t>/g;
+          const texts = [];
+          let am;
+          while ((am = aRe.exec(shapeXml)) !== null) texts.push(am[1]);
+          if (texts.join('').trim() !== '{{CAD_IMAGE}}') return shapeXml;
+          cadInserted = true;
+          imgIdx++;
+          const cadName = `image${imgIdx}.${cadImgExt}`;
+          const cadRId  = `rIdImg${imgIdx}`;
+          zip.file(`ppt/media/${cadName}`, cadImgBuf);
+          ctNeedsUpdate = true;
+          relsXml = relsXml.replace(
+            '</Relationships>',
+            `<Relationship Id="${cadRId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/${cadName}"/></Relationships>`
+          );
+          const x = Math.round(0.97 * INCH), y = Math.round(1.61 * INCH);
+          const w = Math.round(2.59 * INCH), h = Math.round(7.00 * INCH);
+          return (
+            `<p:pic>` +
+            `<p:nvPicPr><p:cNvPr id="${9900 + imgIdx}" name="${cadName}"/><p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr><p:nvPr/></p:nvPicPr>` +
+            `<p:blipFill><a:blip r:embed="${cadRId}"/><a:stretch><a:fillRect/></a:stretch></p:blipFill>` +
+            `<p:spPr><a:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="${w}" cy="${h}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr>` +
+            `</p:pic>`
+          );
+        });
+        if (cadInserted) zip.file(relsPath, relsXml);
+      }
+
+      xml = replaceTokens(xml);
+      zip.file(slidePath, xml);
+    }
+
+    if (ctNeedsUpdate) {
+      const ctPath = '[Content_Types].xml';
+      if (zip.files[ctPath]) {
+        let ctXml = await zip.files[ctPath].async('string');
+        if (!ctXml.includes(`Extension="${cadImgExt}"`))
+          ctXml = ctXml.replace('</Types>', `<Default Extension="${cadImgExt}" ContentType="${cadImgMime}"/></Types>`);
+        zip.file(ctPath, ctXml);
+      }
+    }
+
+    const pptxBuf = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+
     const safe = s => (s || '').replace(/[\\/:*?"<>|#\[\]\r\n]/g, '').trim();
     const cleanStyle = (style || '').replace(/^[A-Za-z]+-?/, '');
     const fileName = `${safe(norm(model))} - ${safe(supplier || '')} - ${safe(cleanStyle)}`;
+    const PPTX_MIME = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
 
-    let copyId;
+    // Step 3: Upload PPTX to service account's own drive (not Shared Drive — avoids Bad Request)
+    //         and convert to Google Slides format on the way in.
+    let newId;
     try {
-      const copyRes = await drive.files.copy({
-        fileId: templateId,
-        supportsAllDrives: true,
-        requestBody: { name: fileName, parents: [folderId] },
+      const createResp = await drive.files.create({
+        requestBody: {
+          name: fileName,
+          mimeType: 'application/vnd.google-apps.presentation',
+        },
+        media: {
+          mimeType: PPTX_MIME,
+          body: Readable.from([pptxBuf]),
+        },
+        fields: 'id',
       });
-      copyId = copyRes.data.id;
+      newId = createResp.data.id;
     } catch (e) {
       const detail = e.response?.data?.error?.message || e.message;
-      return res.status(500).json({ error: `Copy failed: ${detail}` });
+      return res.status(500).json({ error: `Upload failed: ${detail}` });
     }
 
-    // Step 2: Build replaceAllText requests for every token
-    const requests = Object.entries(tokens).map(([ph, val]) => ({
-      replaceAllText: {
-        containsText: { text: ph, matchCase: true },
-        replaceText: String(val ?? ''),
-      },
-    }));
-
-    // Step 3: Handle {{CAD_IMAGE}} placeholder — delete shape, insert real image
-    if (cadFileId) {
-      const cadImgUrl = `https://drive.google.com/uc?export=view&id=${cadFileId}`;
-      let presData;
-      try {
-        presData = await slides.presentations.get({ presentationId: copyId });
-      } catch (e) {
-        console.warn('[rebeca/generate-tp] presentations.get failed:', e.message);
-      }
-      if (presData) {
-        const INCH = 914400; // EMU per inch
-        for (const slide of (presData.data.slides || [])) {
-          for (const el of (slide.pageElements || [])) {
-            if (!el.shape?.text) continue;
-            const text = (el.shape.text.textElements || [])
-              .map(te => te.textRun?.content || '').join('').trim();
-            if (text !== '{{CAD_IMAGE}}') continue;
-            requests.push(
-              { deleteObject: { objectId: el.objectId } },
-              { createImage: {
-                url: cadImgUrl,
-                elementProperties: {
-                  pageObjectId: slide.objectId,
-                  size: {
-                    width:  { magnitude: Math.round(2.59 * INCH), unit: 'EMU' },
-                    height: { magnitude: Math.round(7.00 * INCH), unit: 'EMU' },
-                  },
-                  transform: {
-                    scaleX: 1, scaleY: 1, shearX: 0, shearY: 0,
-                    translateX: Math.round(0.97 * INCH),
-                    translateY: Math.round(1.61 * INCH),
-                    unit: 'EMU',
-                  },
-                },
-              }},
-            );
-          }
-        }
-      }
+    // Step 4: Move the new file into the Shared Drive folder
+    try {
+      await drive.files.update({
+        fileId: newId,
+        addParents: folderId,
+        removeParents: 'root',
+        supportsAllDrives: true,
+        fields: 'id',
+        requestBody: {},
+      });
+    } catch (e) {
+      const detail = e.response?.data?.error?.message || e.message;
+      console.warn('[rebeca/generate-tp] move to folder failed:', detail);
+      // File exists but wasn't moved — still return the link
     }
-
-    // Step 4: Apply everything in one batchUpdate
-    await slides.presentations.batchUpdate({
-      presentationId: copyId,
-      requestBody: { requests },
-    });
 
     res.json({
       ok: true,
-      presentationUrl: `https://docs.google.com/presentation/d/${copyId}/edit`,
+      presentationUrl: `https://docs.google.com/presentation/d/${newId}/edit`,
       folderUrl: `https://drive.google.com/drive/folders/${folderId}`,
     });
   } catch (e) {
