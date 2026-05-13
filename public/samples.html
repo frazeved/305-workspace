@@ -328,11 +328,11 @@
         </div>
         <div class="form-group">
           <label class="form-label">Ship Date</label>
-          <input class="form-input" id="sf-ship-date" type="text" placeholder="MM/DD/YYYY" />
+          <input class="form-input" id="sf-ship-date" type="date" />
         </div>
         <div class="form-group">
           <label class="form-label">ETA</label>
-          <input class="form-input" id="sf-eta" type="text" placeholder="MM/DD/YYYY" />
+          <input class="form-input" id="sf-eta" type="date" />
         </div>
         <div class="form-group">
           <label class="form-label">Created By</label>
@@ -469,6 +469,12 @@ async function searchSample() {
   } catch (e) { showToast('Error: ' + e.message); }
 }
 
+function toMDY(val) {
+  if (!val) return '';
+  const [y, m, d] = val.split('-');
+  return `${m}/${d}/${y}`;
+}
+
 async function saveSample() {
   const tracking = document.getElementById('sf-tracking').value.trim();
   if (!tracking) { showToast('Tracking # is required'); return; }
@@ -482,8 +488,8 @@ async function saveSample() {
       'SAMPLE TYPE':  document.getElementById('sf-sample-type').value,
       'SUPPLIER':     document.getElementById('sf-supplier').value,
       'TRACKING':     tracking,
-      'SHIP DATE':    document.getElementById('sf-ship-date').value.trim(),
-      'ETA':          document.getElementById('sf-eta').value.trim(),
+      'SHIP DATE':    toMDY(document.getElementById('sf-ship-date').value),
+      'ETA':          toMDY(document.getElementById('sf-eta').value),
       'CREATED BY':   document.getElementById('sf-created-by').value.trim(),
       'DISCLAIMER':   document.getElementById('sf-disclaimer').value.trim(),
     };

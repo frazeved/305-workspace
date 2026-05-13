@@ -211,8 +211,8 @@ for (let i = 1; i <= ROWS; i++) {
     <td><select class="td-select r-attn">${opt(BUYERS)}</select></td>
     <td><select class="td-select r-type">${opt(TYPES)}</select></td>
     <td><select class="td-select r-supp">${opt(SUPPLIERS)}</select></td>
-    <td><input type="text" class="td-input r-ship" placeholder="MM/DD/YYYY" /></td>
-    <td><input type="text" class="td-input r-eta"  placeholder="MM/DD/YYYY" /></td>
+    <td><input type="date" class="td-input r-ship" /></td>
+    <td><input type="date" class="td-input r-eta"  /></td>
     <td><input type="text" class="td-input r-track" placeholder="Required to save" /></td>
     <td><input type="text" class="td-input r-disc"  placeholder="Notes..." /></td>
     <td><select class="td-select r-by">${opt(CREATORS)}</select></td>
@@ -226,6 +226,12 @@ function showToast(msg, color) {
   t.style.background = color || '#1a1d23';
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function toMDY(val) {
+  if (!val) return '';
+  const [y, m, d] = val.split('-');
+  return `${m}/${d}/${y}`;
 }
 
 async function saveAll() {
@@ -246,8 +252,8 @@ async function saveAll() {
         'ATTN / BUYER': tr.querySelector('.r-attn').value,
         'SAMPLE TYPE':  tr.querySelector('.r-type').value,
         'SUPPLIER':     tr.querySelector('.r-supp').value,
-        'SHIP DATE':    tr.querySelector('.r-ship').value.trim(),
-        'ETA':          tr.querySelector('.r-eta').value.trim(),
+        'SHIP DATE':    toMDY(tr.querySelector('.r-ship').value),
+        'ETA':          toMDY(tr.querySelector('.r-eta').value),
         'TRACKING':     tracking,
         'DISCLAIMER':   tr.querySelector('.r-disc').value.trim(),
         'CREATED BY':   tr.querySelector('.r-by').value,
