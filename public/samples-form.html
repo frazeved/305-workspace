@@ -294,19 +294,19 @@ async function saveAll() {
 
   status.textContent = `${saved} saved${errors ? `, ${errors} failed` : ''}`;
   showToast(errors ? `${saved} saved, ${errors} failed` : `${saved} row${saved > 1 ? 's' : ''} saved!`, errors ? '#dc2626' : '#16a34a');
-  btn.disabled = false; btn.innerHTML = btn.innerHTML.replace('Saving...', 'Save All');
+  btn.disabled = false;
+  btn.innerHTML = btn.innerHTML.replace('Saving...', 'Save All');
 
-  // Clear successfully saved rows
-  for (const { i } of rows) {
+  // Clear all rows
+  for (let i = 1; i <= ROWS; i++) {
+    const tr  = document.getElementById(`row-${i}`);
     const dot = document.getElementById(`dot-${i}`);
-    if (dot.classList.contains('saved')) {
-      const tr = document.getElementById(`row-${i}`);
-      tr.querySelectorAll('.td-input').forEach(el => el.value = '');
-      tr.querySelectorAll('.td-select').forEach(el => {
-        el.value = el.classList.contains('r-by') ? 'IGO GARDEL' : '';
-      });
-      dot.className = 'row-dot';
-    }
+    tr.querySelectorAll('.td-input').forEach(el => el.value = '');
+    tr.querySelectorAll('.td-select').forEach(el => {
+      el.value = el.classList.contains('r-by') ? 'IGO GARDEL' : '';
+    });
+    dot.className = 'row-dot';
+    dot.title = '';
   }
 }
 </script>
