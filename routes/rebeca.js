@@ -55,7 +55,7 @@ router.get('/search-style', async (req, res) => {
     const formulaRow = (rFormula.data.values || []).slice(1)[rowIdx] || [];
     const result = {};
     headers.forEach((h, i) => {
-      const fVal    = String(formulaRow[i] ?? '');
+      const fVal     = String(formulaRow[i] ?? '');
       const imgMatch = fVal.match(/^=IMAGE\("([^"]+)"/i);
       result[h] = imgMatch ? imgMatch[1] : (row[i] ?? '');
     });
@@ -113,7 +113,6 @@ router.post('/save-style', async (req, res) => {
       return res.json({ ok: true, action: 'updated' });
     }
 
-    // New style — append to all 4 tabs
     const tabs = ['Design DataBase', 'Production & PO DataBase', 'Print DataBase', 'PowerBI database Process'];
     for (const tab of tabs) {
       const tabRows = await readTab(tab);
@@ -137,9 +136,8 @@ router.delete('/delete-style', async (req, res) => {
   if (!styleNum) return res.status(400).json({ error: 'STYLE # required' });
   if (!requireCreds(res)) return;
 
-  const sheets = sheetsClient(false);
-  const tabs   = ['Design DataBase', 'Production & PO DataBase', 'Print DataBase', 'PowerBI database Process'];
-
+  const sheets      = sheetsClient(false);
+  const tabs        = ['Design DataBase', 'Production & PO DataBase', 'Print DataBase', 'PowerBI database Process'];
   const deletedFrom = [];
   const skipped     = [];
 
@@ -152,8 +150,7 @@ router.delete('/delete-style', async (req, res) => {
       });
       rows = r.data.values || [];
     } catch (e) {
-      const detail = e.response?.data?.error?.message || e.message;
-      skipped.push(`${tab} (read: ${detail})`);
+      skipped.push(`${tab} (read: ${e.response?.data?.error?.message || e.message})`);
       continue;
     }
 
@@ -196,256 +193,6 @@ router.delete('/delete-style', async (req, res) => {
   res.json({ ok: true, deletedFrom, skipped });
 });
 
-// TP Generator — export PPTX → edit tokens → upload to SA drive → move to folder
-router.post('/generate-tp', async (req, res) => {
-  if (!requireCreds(res)) return;
-
-  const {
-    style, model, category, subCategory, fabric,
-    printType, printName, supplier, cadUrl,
-    printSentToSupplier, tpSentToSupplier, ndcMonthYear,
-  } = req.body;
-
-  if (!style) return res.status(400).json({ error: 'STYLE # required' });
-  if (!model) return res.status(400).json({ error: 'TECH PACK MODEL required' });
-
-  const norm = s => (s || '').replace(/ /g, ' ').replace(/\s+/g, ' ').toUpperCase().trim();
-
-  const MODEL_TEMPLATES = {
-    'TP_FARM ANTHRO NEW BODY':    '1Zvg1gdMMzE3mgdDuKHTnqhgJJKrskeM3MIw2ZVpSRsY',
-    'TP_FARM ANTHRO REPEAT BODY': '1bMFvktTY0zb2rRmr1Fm4M3fqFYIdlAOXtFG9GsXL-00',
-  };
-  const templateId = MODEL_TEMPLATES[norm(model)];
-  if (!templateId) return res.status(400).json({ error: `Unknown model: "${model}"` });
-
-  const folderId = '1CTH7KZzFJLd-a4bN51MEMmSF7LiOc1f6';
-
-  const extractFileId = url => {
-    const m1 = (url || '').match(/\/d\/([a-zA-Z0-9_-]+)/);
-    if (m1) return m1[1];
-    const m2 = (url || '').match(/[?&]id=([a-zA-Z0-9_-]+)/);
-    return m2 ? m2[1] : null;
-  };
-  const cadFileId = extractFileId(cadUrl);
-
-  const padZ = n => String(n).padStart(2, '0');
-  const parseSheetDate = s => {
-    if (!s) return '';
-    const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    return m ? `${m[2]}/${m[3]}/${m[1]}` : s;
-  };
-  const fmtDate = d => (!d || isNaN(d)) ? '' : `${padZ(d.getMonth()+1)}/${padZ(d.getDate())}/${d.getFullYear()}`;
-  let sampleDueDate = '';
-  if (tpSentToSupplier) {
-    const d = new Date(tpSentToSupplier + 'T12:00:00');
-    if (!isNaN(d)) { d.setDate(d.getDate() + 14); sampleDueDate = fmtDate(d); }
-  }
-
-  const escapeXml = s => String(s ?? '')
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
-
-  const tokens = {
-    '{{STYLE}}':                  style,
-    '{{STYLE #}}':                style,
-    '{{DESIGN_STYLE}}':           style,
-    '{{CATEGORY}}':               category     || '',
-    '{{SUB_CATEGORY}}':           subCategory  || '',
-    '{{FABRIC}}':                 fabric       || '',
-    '{{PRINT_TYPE}}':             printType    || '',
-    '{{PRINT_NAME}}':             printName    || '',
-    '{{SUPPLIER}}':               supplier     || '',
-    '{{PRINT_SENT_TO_SUPPLIER}}': parseSheetDate(printSentToSupplier),
-    '{{PRINT_SENT_TO_SUP}}':      parseSheetDate(printSentToSupplier),
-    '{{TP_SENT_TO_SUPPLIER}}':    parseSheetDate(tpSentToSupplier),
-    '{{NDC_MONTH_YEAR}}':         ndcMonthYear || '',
-    '{{SAMPLE_DUE_DATE}}':        sampleDueDate,
-    '{{SAMPLE_SIZE}}':            'SMALL 4/6',
-    '{{TECHNICAL_DESIGNER}}':     'bertha@creativetwotwelve.com',
-    '{{CAD_URL}}':                cadUrl       || '',
-    '{{CAD_IMAGE}}':              '',
-  };
-
-  // Merge split text runs inside a paragraph so tokens aren't broken across runs
-  const mergeRunsInPara = paraXml => {
-    const runRe = /<a:r>([\s\S]*?)<\/a:r>/g;
-    const runMatches = [];
-    let m;
-    while ((m = runRe.exec(paraXml)) !== null)
-      runMatches.push({ start: m.index, end: m.index + m[0].length, inner: m[1] });
-    if (runMatches.length < 2) return paraXml;
-    const texts = runMatches.map(r => {
-      const tm = r.inner.match(/<a:t[^>]*>([\s\S]*?)<\/a:t>/);
-      return tm ? tm[1] : '';
-    });
-    const combined = texts.join('');
-    if (!Object.keys(tokens).some(k => combined.includes(k))) return paraXml;
-    const rPrM = runMatches[0].inner.match(/<a:rPr[\s\S]*?(?:\/>|<\/a:rPr>)/);
-    const rPr  = rPrM ? rPrM[0] : '';
-    return (
-      paraXml.slice(0, runMatches[0].start) +
-      `<a:r>${rPr}<a:t>${combined}</a:t></a:r>` +
-      paraXml.slice(runMatches[runMatches.length - 1].end)
-    );
-  };
-
-  const replaceTokens = xml => {
-    let out = xml.replace(/<a:p(?:\s[^>]*)?>[\s\S]*?<\/a:p>/g, mergeRunsInPara);
-    for (const [ph, val] of Object.entries(tokens)) {
-      const esc = ph.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      out = out.replace(new RegExp(esc, 'g'), escapeXml(String(val ?? '')));
-    }
-    return out;
-  };
-
-  try {
-    const sa = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
-    const auth = new google.auth.GoogleAuth({
-      credentials: sa,
-      scopes: ['https://www.googleapis.com/auth/drive'],
-    });
-    const authClient = await auth.getClient();
-    const drive = google.drive({ version: 'v3', auth: authClient });
-
-    // Step 1: Export template as PPTX
-    let exportResp;
-    try {
-      exportResp = await drive.files.export(
-        { fileId: templateId, mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' },
-        { responseType: 'arraybuffer' }
-      );
-    } catch (e) {
-      const detail = e.response?.data?.error?.message || e.message;
-      return res.status(500).json({ error: `Export failed: ${detail}` });
-    }
-
-    // Step 2: Open ZIP, edit tokens, optionally embed CAD image
-    const JSZip = require('jszip');
-    const zip = await JSZip.loadAsync(Buffer.from(exportResp.data));
-
-    // Download CAD image if provided
-    let cadImgBuf = null, cadImgMime = 'image/png', cadImgExt = 'png';
-    if (cadFileId) {
-      try {
-        const imgResp = await drive.files.get(
-          { fileId: cadFileId, alt: 'media' },
-          { responseType: 'arraybuffer' }
-        );
-        cadImgBuf = Buffer.from(imgResp.data);
-        const ct  = (imgResp.headers?.['content-type'] || 'image/png').split(';')[0].trim();
-        cadImgMime = ct;
-        cadImgExt  = (ct.includes('jpg') || ct.includes('jpeg')) ? 'jpg' : 'png';
-      } catch (e) {
-        console.warn('[rebeca/generate-tp] CAD download failed:', e.message);
-      }
-    }
-
-    const INCH = 914400;
-    let imgIdx = 500, ctNeedsUpdate = false;
-
-    const slideKeys = Object.keys(zip.files)
-      .filter(f => /^ppt\/slides\/slide\d+\.xml$/.test(f))
-      .sort((a, b) => parseInt(a.match(/slide(\d+)/)[1]) - parseInt(b.match(/slide(\d+)/)[1]));
-
-    for (const slidePath of slideKeys) {
-      let xml = await zip.files[slidePath].async('string');
-      const slideNum = slidePath.match(/slide(\d+)\.xml$/)[1];
-      const relsPath = `ppt/slides/_rels/slide${slideNum}.xml.rels`;
-      let relsXml = zip.files[relsPath]
-        ? await zip.files[relsPath].async('string')
-        : `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>`;
-
-      // Replace {{CAD_IMAGE}} placeholder shape with actual image element
-      let cadInserted = false;
-      if (cadImgBuf) {
-        xml = xml.replace(/<p:sp>[\s\S]*?<\/p:sp>/g, shapeXml => {
-          if (cadInserted) return shapeXml;
-          const aRe = /<a:t[^>]*>([\s\S]*?)<\/a:t>/g;
-          const texts = [];
-          let am;
-          while ((am = aRe.exec(shapeXml)) !== null) texts.push(am[1]);
-          if (texts.join('').trim() !== '{{CAD_IMAGE}}') return shapeXml;
-          cadInserted = true;
-          imgIdx++;
-          const cadName = `image${imgIdx}.${cadImgExt}`;
-          const cadRId  = `rIdImg${imgIdx}`;
-          zip.file(`ppt/media/${cadName}`, cadImgBuf);
-          ctNeedsUpdate = true;
-          relsXml = relsXml.replace(
-            '</Relationships>',
-            `<Relationship Id="${cadRId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/${cadName}"/></Relationships>`
-          );
-          const x = Math.round(0.97 * INCH), y = Math.round(1.61 * INCH);
-          const w = Math.round(2.59 * INCH), h = Math.round(7.00 * INCH);
-          return (
-            `<p:pic>` +
-            `<p:nvPicPr><p:cNvPr id="${9900 + imgIdx}" name="${cadName}"/><p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr><p:nvPr/></p:nvPicPr>` +
-            `<p:blipFill><a:blip r:embed="${cadRId}"/><a:stretch><a:fillRect/></a:stretch></p:blipFill>` +
-            `<p:spPr><a:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="${w}" cy="${h}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr>` +
-            `</p:pic>`
-          );
-        });
-        if (cadInserted) zip.file(relsPath, relsXml);
-      }
-
-      xml = replaceTokens(xml);
-      zip.file(slidePath, xml);
-    }
-
-    if (ctNeedsUpdate) {
-      const ctPath = '[Content_Types].xml';
-      if (zip.files[ctPath]) {
-        let ctXml = await zip.files[ctPath].async('string');
-        if (!ctXml.includes(`Extension="${cadImgExt}"`))
-          ctXml = ctXml.replace('</Types>', `<Default Extension="${cadImgExt}" ContentType="${cadImgMime}"/></Types>`);
-        zip.file(ctPath, ctXml);
-      }
-    }
-
-    const pptxBuf = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
-
-    const safe = s => (s || '').replace(/[\\/:*?"<>|#\[\]\r\n]/g, '').trim();
-    const cleanStyle = (style || '').replace(/^[A-Za-z]+-?/, '');
-    const fileName = `${safe(norm(model))} - ${safe(supplier || '')} - ${safe(cleanStyle)}`;
-    const PPTX_MIME = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
-
-    // Step 3: Upload PPTX directly into the Shared Drive folder with conversion to Slides
-    const { PassThrough } = require('stream');
-    let newId;
-    try {
-      const bodyStream = new PassThrough();
-      bodyStream.end(pptxBuf);
-      const createResp = await drive.files.create({
-        supportsAllDrives: true,
-        requestBody: {
-          name: fileName,
-          mimeType: 'application/vnd.google-apps.presentation',
-          parents: [folderId],
-        },
-        media: {
-          mimeType: PPTX_MIME,
-          body: bodyStream,
-        },
-        fields: 'id',
-      });
-      newId = createResp.data.id;
-    } catch (e) {
-      const detail = e.response?.data?.error?.message || e.message;
-      return res.status(500).json({ error: `Upload failed: ${detail}` });
-    }
-
-    res.json({
-      ok: true,
-      presentationUrl: `https://docs.google.com/presentation/d/${newId}/edit`,
-      folderUrl: `https://drive.google.com/drive/folders/${folderId}`,
-    });
-  } catch (e) {
-    const detail = e.response?.data?.error?.message || e.message;
-    console.error('[rebeca/generate-tp]', detail);
-    res.status(500).json({ error: detail });
-  }
-});
-
 // Dashboard stats
 router.get('/dashboard', async (req, res) => {
   if (!requireCreds(res)) return;
@@ -461,57 +208,59 @@ router.get('/dashboard', async (req, res) => {
     if (rows.length < 2) return res.json({ total: 0, missingTp: 0, missingPrint: 0, months: [] });
 
     const headers  = rows[0].map(h => String(h).trim());
-    const colIdx   = (name) => headers.findIndex(h => h.toUpperCase() === name.toUpperCase());
+    const colIdx   = name => headers.findIndex(h => h.toUpperCase() === name.toUpperCase());
     const styleCol = colIdx('STYLE #');
     const tpCol    = colIdx('TP SENT TO SUPPLIER');
     const printCol = colIdx('PRINT SENT TO SUPPLIER');
-
-    const ndcCol  = headers.findIndex(h => h.toUpperCase().replace(/\s+/g,'').includes('NDC'));
-    const yearCol = headers.findIndex(h => h.toUpperCase().replace(/\s+/g,'') === 'YEAR' ||
-                                          h.toUpperCase().replace(/\s+/g,'') === 'NDCYEAR');
+    const ndcCol   = headers.findIndex(h => h.toUpperCase().replace(/\s+/g,'').includes('NDC'));
+    const yearCol  = headers.findIndex(h => {
+      const k = h.toUpperCase().replace(/\s+/g,'');
+      return k === 'YEAR' || k === 'NDCYEAR';
+    });
 
     const MON_MAP = {
       JAN:1,JANUARY:1, FEB:2,FEBRUARY:2, MAR:3,MARCH:3, APR:4,APRIL:4,
       MAY:5, JUN:6,JUNE:6, JUL:7,JULY:7, AUG:8,AUGUST:8,
       SEP:9,SEPT:9,SEPTEMBER:9, OCT:10,OCTOBER:10, NOV:11,NOVEMBER:11, DEC:12,DECEMBER:12,
     };
+
     const parseNdc = (ndcRaw, yearRaw) => {
       const s = String(ndcRaw || '').trim();
       if (!s) return null;
 
-      // Full date: "6/1/2026" or "06/01/2026" or "2026-06-01"
+      // Full date: "6/1/2026" "06/01/2026"
       const fullDate = s.match(/^(\d{1,2})\/\d{1,2}\/(\d{4})$/);
       if (fullDate) return { mon: parseInt(fullDate[1]), yr: parseInt(fullDate[2]) };
+
+      // ISO: "2026-06-01"
       const isoDate = s.match(/^(\d{4})-(\d{2})-\d{2}$/);
       if (isoDate) return { mon: parseInt(isoDate[2]), yr: parseInt(isoDate[1]) };
 
-      // Combined: "05/2026" "May/2026" "May 2026" "May-2026"
+      // Combined: "05/2026" "May/2026" "May 2026" "May-2026" "May/26"
       const withYear = s.match(/^([A-Za-z]+|\d{1,2})[\s\/\-](\d{2,4})$/);
       if (withYear) {
         const monPart = withYear[1];
         let yr = parseInt(withYear[2]);
-        if (yr < 100) yr += 2000; // "26" → 2026
+        if (yr < 100) yr += 2000;
         const mon = /^\d+$/.test(monPart) ? parseInt(monPart) : (MON_MAP[monPart.toUpperCase()] || 0);
         return mon ? { mon, yr } : null;
       }
 
-      // Month name or number only — pair with separate YEAR column or default to current year
-      const mon = /^\d{1,2}$/.test(s)
-        ? parseInt(s)
-        : (MON_MAP[s.toUpperCase()] || 0);
+      // Month name or number only
+      const mon = /^\d{1,2}$/.test(s) ? parseInt(s) : (MON_MAP[s.toUpperCase()] || 0);
       if (!mon) return null;
       let yr = yearRaw ? parseInt(String(yearRaw).trim()) : NaN;
       if (yr < 100) yr += 2000;
-      if (isNaN(yr)) yr = new Date().getFullYear(); // no year info → assume current year
+      if (isNaN(yr)) yr = new Date().getFullYear();
       return { mon, yr };
     };
 
     const MONTH_NAMES = ['','JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-
-    const styleRows = rows.slice(1).filter(r => String(r[styleCol] || '').trim());
+    const styleRows  = rows.slice(1).filter(r => String(r[styleCol] || '').trim());
 
     const monthMap = {};
     let total = 0, missingTp = 0, missingPrint = 0;
+
     styleRows.forEach(r => {
       const ndcRaw  = ndcCol  >= 0 ? r[ndcCol]  : '';
       const yearRaw = yearCol >= 0 ? r[yearCol] : '';
@@ -524,18 +273,17 @@ router.get('/dashboard', async (req, res) => {
       if (noTp)    missingTp++;
       if (noPrint) missingPrint++;
 
-      const key = parsed.mon;
-      if (!monthMap[key]) monthMap[key] = { count: 0, missingTp: 0, missingPrint: 0 };
-      monthMap[key].count++;
-      if (noTp)    monthMap[key].missingTp++;
-      if (noPrint) monthMap[key].missingPrint++;
+      if (!monthMap[parsed.mon]) monthMap[parsed.mon] = { count: 0, missingTp: 0, missingPrint: 0 };
+      monthMap[parsed.mon].count++;
+      if (noTp)    monthMap[parsed.mon].missingTp++;
+      if (noPrint) monthMap[parsed.mon].missingPrint++;
     });
 
-    // 4 months starting from next month
+    // 4 months starting 2 months ahead (e.g. in May → Jul Aug Sep Oct)
     const nowMonth = new Date().getMonth() + 1;
-    const months = [1, 2, 3, 4].map(i => {
-      const m  = (nowMonth % 12) + i;
-      const mm = m > 12 ? m - 12 : m;
+    const months = [2, 3, 4, 5].map(i => {
+      let mm = nowMonth + i;
+      if (mm > 12) mm -= 12;
       return {
         label:        MONTH_NAMES[mm],
         sortKey:      mm,
