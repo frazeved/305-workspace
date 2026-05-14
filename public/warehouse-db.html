@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>305 Workspace â€” Transit Dashboard</title>
+  <title>305 Workspace â€" Transit Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
@@ -113,7 +113,7 @@
     .vis-dl-text { font-size: 11px; font-weight: 600; color: #991b1b; }
     .vis-dl-sub  { font-size: 10px; color: #b91c1c; }
 
-    /* DATES â€” inline strip */
+    /* DATES â€" inline strip */
     .dates { display: flex; gap: 0; background: var(--bg); border-radius: 6px; overflow: hidden; }
     .date-item { flex: 1; padding: 5px 8px; border-right: 1px solid var(--border); }
     .date-item:last-child { border-right: none; }
@@ -121,14 +121,14 @@
     .date-val { font-size: 11px; font-weight: 600; }
     .date-val.red { color: var(--red); }
 
-    /* METRICS â€” inline */
+    /* METRICS â€" inline */
     .metrics { display: flex; gap: 0; background: var(--bg); border-radius: 6px; overflow: hidden; }
     .metric { flex: 1; padding: 5px 8px; border-right: 1px solid var(--border); text-align: center; }
     .metric:last-child { border-right: none; }
     .metric-lbl { font-size: 8px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 2px; }
     .metric-val { font-size: 11px; font-weight: 700; }
 
-    /* BOTTOM ROW â€” labels + awb together */
+    /* BOTTOM ROW â€" labels + awb together */
     .bottom-row { display: flex; align-items: center; gap: 6px; }
     .label-row { display: flex; gap: 4px; }
     .lbl { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.3px; }
@@ -164,15 +164,15 @@
       .toolbar { margin-bottom: 10px; }
       .status-text { font-size: 11px; }
 
-      /* PILLS â€” horizontal scroll */
+      /* PILLS â€" horizontal scroll */
       .pills { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; gap: 6px; }
       .pills::-webkit-scrollbar { display: none; }
       .pill { flex-shrink: 0; font-size: 12px; padding: 6px 12px; }
 
-      /* GRID â€” 1 column, full width */
+      /* GRID â€" 1 column, full width */
       .grid { grid-template-columns: 1fr; gap: 8px; }
 
-      /* CARDS â€” slightly more padding on mobile for thumb targets */
+      /* CARDS â€" slightly more padding on mobile for thumb targets */
       .card-body { padding: 12px 14px; gap: 9px; }
       .card-po { font-size: 13px; }
       .card-style { font-size: 11px; }
@@ -185,7 +185,7 @@
       .vis-tr-dates { font-size: 10px; }
       .vis-dl-text { font-size: 12px; }
 
-      /* DATES â€” slightly bigger text for readability */
+      /* DATES â€" slightly bigger text for readability */
       .date-lbl { font-size: 9px; }
       .date-val { font-size: 12px; }
 
@@ -197,27 +197,102 @@
       .lbl { font-size: 10px; padding: 3px 7px; }
       .awb-link { font-size: 11px; max-width: 120px; }
     }
+  
+    /* == SHARED NAV DROPDOWN == */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .nav-brand {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.3px;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .nav-brand span { color: var(--accent); }
+    .nav-dropdown { position: relative; margin-left: auto; }
+    .nav-menu-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    .nav-menu-btn:hover { background: #eaecf2; border-color: #c9cdd8; }
+    .nav-menu-panel {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.13);
+      min-width: 220px;
+      padding: 6px;
+      z-index: 200;
+    }
+    .nav-menu-panel.open { display: block; }
+    .nav-menu-item {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 9px 14px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text-secondary);
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+    .nav-menu-item:hover { background: var(--bg); color: var(--text); }
+    .nav-menu-item.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+    @media (max-width: 640px) { nav { padding: 0 16px; } }
   </style>
 </head>
 <body>
 <nav>
   <div class="nav-brand">305 <span>Workspace</span></div>
-  <button class="nav-hamburger" onclick="document.getElementById('nav-links').classList.toggle('open')" aria-label="Menu">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-  </button>
-  <div class="nav-links" id="nav-links">
-    <a class="nav-link" href="/">&#8592; Home</a>
-    <a class="nav-link active" href="warehouse.html">Warehouse Now</a>
-    <a class="nav-link" href="production.html">Production</a>
-    <a class="nav-link" href="samples.html">Samples Tracking</a>
-    <a class="nav-link" href="design.html">Design</a>
-    <a class="nav-link" href="shipment.html">New Shipment</a>
-    <a class="nav-link" href="map.html">Map Updates</a>
-    <a class="nav-link" href="forecast.html">Forecast</a>
-    <a class="nav-link" href="gantt.html">Gantt Chart</a>
-    <a class="nav-link" href="tradestone.html">Tradestone Updates</a>
-    <a class="nav-link" href="rlm.html">RLM Updates</a>
-    <a class="nav-link" href="dhl.html">DHL Duties Cost</a>
+  <div class="nav-dropdown" id="nav-dropdown">
+    <button class="nav-menu-btn" onclick="toggleNav()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      Menu
+    </button>
+    <div class="nav-menu-panel" id="nav-panel">
+      <a class="nav-menu-item" href="/">Home</a>
+      <a class="nav-menu-item" href="design.html">Design</a>
+      <a class="nav-menu-item" href="production.html">Production</a>
+      <a class="nav-menu-item" href="samples.html">Anthropologie Samples Tracking</a>
+      <a class="nav-menu-item active" href="warehouse.html">Warehouse Now</a>
+      <a class="nav-menu-item" href="gantt.html">Gantt Chart</a>
+      <a class="nav-menu-item" href="map.html">Map Updates</a>
+      <a class="nav-menu-item" href="shipment.html">New Shipment</a>
+      <a class="nav-menu-item" href="forecast.html">Forecast</a>
+      <a class="nav-menu-item" href="tradestone.html">Tradestone Updates</a>
+      <a class="nav-menu-item" href="rlm.html">RLM Updates</a>
+      <a class="nav-menu-item" href="dhl.html">DHL Duties Cost</a>
+      <a class="nav-menu-item" href="main-line.html">Main Line Sample Management</a>
+    </div>
   </div>
 </nav>
 
@@ -267,7 +342,7 @@ function classify(v) {
 function parseDate(s) { const d = new Date(s); return isNaN(d) ? null : d; }
 function fmt(s) {
   const d = parseDate(s);
-  return d ? d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}) : (s||'â€”');
+  return d ? d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}) : (s||'â€"');
 }
 function isPast(s)       { const d = parseDate(s); return d && d < new Date(); }
 function withinDays(s,n) { const d = parseDate(s); if(!d) return false; return (d - new Date()) / 86400000 <= n; }
@@ -352,7 +427,7 @@ function build(rows) {
     const now     = new Date();
     const exDate  = parseDate(exfac);
     const arrDate = exDate ? new Date(+exDate + 3*86400000) : null;
-    const arrStr  = arrDate ? arrDate.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}) : 'â€”';
+    const arrStr  = arrDate ? arrDate.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}) : 'â€"';
 
     // Red conditions
     const flightRed  = exDate  && exDate  < now && cls !== 'tr' && cls !== 'sh' && cls !== 'wh';
@@ -361,7 +436,7 @@ function build(rows) {
     const ndcDate    = parseDate(cancel);
     const ndcRed     = ndcDate && (ndcDate - now) / 86400000 <= 5;
 
-    // Transit bar â€” accurate %
+    // Transit bar â€" accurate %
     let pct = 0;
     if (exDate && arrDate && arrDate > exDate) {
       pct = Math.min(100, Math.max(0, Math.round(((now - exDate) / (arrDate - exDate)) * 100)));

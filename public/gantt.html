@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>305 Workspace â€” Miley</title>
+  <title>305 Workspace â€" Miley</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
@@ -84,25 +84,102 @@
       .content { width: 100%; }
       .grid { grid-template-columns: 1fr; }
     }
+  
+    /* == SHARED NAV DROPDOWN == */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .nav-brand {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.3px;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .nav-brand span { color: var(--accent); }
+    .nav-dropdown { position: relative; margin-left: auto; }
+    .nav-menu-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    .nav-menu-btn:hover { background: #eaecf2; border-color: #c9cdd8; }
+    .nav-menu-panel {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.13);
+      min-width: 220px;
+      padding: 6px;
+      z-index: 200;
+    }
+    .nav-menu-panel.open { display: block; }
+    .nav-menu-item {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 9px 14px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text-secondary);
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+    .nav-menu-item:hover { background: var(--bg); color: var(--text); }
+    .nav-menu-item.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+    @media (max-width: 640px) { nav { padding: 0 16px; } }
   </style>
 </head>
 <body>
 <nav>
   <div class="nav-brand">305 <span>Workspace</span></div>
-  <button class="nav-hamburger" onclick="toggleNav()" aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
-  <div class="nav-links" id="nav-links">
-    <a class="nav-link" href="/">&#8592; Home</a>
-    <a class="nav-link" href="warehouse.html">Warehouse Now</a>
-    <a class="nav-link" href="production.html">Production</a>
-    <a class="nav-link" href="samples.html">Samples Tracking</a>
-    <a class="nav-link" href="design.html">Design</a>
-    <a class="nav-link" href="shipment.html">New Shipment</a>
-    <a class="nav-link" href="map.html">Map Updates</a>
-    <a class="nav-link" href="forecast.html">Forecast</a>
-    <a class="nav-link active" href="gantt.html">Gantt Chart</a>
-    <a class="nav-link" href="tradestone.html">Tradestone Updates</a>
-    <a class="nav-link" href="rlm.html">RLM Updates</a>
-    <a class="nav-link" href="dhl.html">DHL Duties Cost</a>
+  <div class="nav-dropdown" id="nav-dropdown">
+    <button class="nav-menu-btn" onclick="toggleNav()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      Menu
+    </button>
+    <div class="nav-menu-panel" id="nav-panel">
+      <a class="nav-menu-item" href="/">Home</a>
+      <a class="nav-menu-item" href="design.html">Design</a>
+      <a class="nav-menu-item" href="production.html">Production</a>
+      <a class="nav-menu-item" href="samples.html">Anthropologie Samples Tracking</a>
+      <a class="nav-menu-item" href="warehouse.html">Warehouse Now</a>
+      <a class="nav-menu-item active" href="gantt.html">Gantt Chart</a>
+      <a class="nav-menu-item" href="map.html">Map Updates</a>
+      <a class="nav-menu-item" href="shipment.html">New Shipment</a>
+      <a class="nav-menu-item" href="forecast.html">Forecast</a>
+      <a class="nav-menu-item" href="tradestone.html">Tradestone Updates</a>
+      <a class="nav-menu-item" href="rlm.html">RLM Updates</a>
+      <a class="nav-menu-item" href="dhl.html">DHL Duties Cost</a>
+      <a class="nav-menu-item" href="main-line.html">Main Line Sample Management</a>
+    </div>
   </div>
 </nav>
 
@@ -114,7 +191,7 @@
       <div class="sidebar-name">Miley</div>
       <div class="sidebar-title">Timeline & Schedule Specialist<br>Production Planning</div>
       <div class="sidebar-desc">
-        Miley keeps the production calendar on track â€” updating Gantt timelines, tracking milestones, flagging critical path delays, and sending deadline alerts before things fall behind.
+        Miley keeps the production calendar on track â€" updating Gantt timelines, tracking milestones, flagging critical path delays, and sending deadline alerts before things fall behind.
       </div>
       <div class="sidebar-tags">
         <span class="sidebar-tag">Gantt Chart</span>
@@ -163,14 +240,14 @@
           <div><div class="card-title">PRODUCTION TIMELINE UPDATE</div><div class="card-dest">&#x2192; Google Sheets</div></div>
           <span class="soon-label">Coming Soon</span>
         </div>
-        <div class="card-body"><div class="card-desc">Refreshes the master Gantt chart with current production dates per order â€” cut, sew, finish, QC, and ex-factory â€” pulled from factory confirmations.</div></div>
+        <div class="card-body"><div class="card-desc">Refreshes the master Gantt chart with current production dates per order â€" cut, sew, finish, QC, and ex-factory â€" pulled from factory confirmations.</div></div>
       </div>
       <div class="card">
         <div class="card-header">
           <div><div class="card-title">MILESTONE STATUS TRACKER</div><div class="card-dest">&#x2192; Google Sheets</div></div>
           <span class="soon-label">Coming Soon</span>
         </div>
-        <div class="card-body"><div class="card-desc">Tracks completion of each production milestone per PO â€” shows what's on time, at risk, or already delayed across all active orders.</div></div>
+        <div class="card-body"><div class="card-desc">Tracks completion of each production milestone per PO â€" shows what's on time, at risk, or already delayed across all active orders.</div></div>
       </div>
       <div class="card">
         <div class="card-header">
@@ -192,7 +269,12 @@
 
 <div class="toast" id="toast"></div>
 <script>
-function toggleNav() { document.getElementById('nav-links').classList.toggle('open'); }
+function toggleNav() { document.getElementById('nav-panel').classList.toggle('open'); }
+document.addEventListener('click', function(e) {
+  if (!document.getElementById('nav-dropdown').contains(e.target)) {
+    document.getElementById('nav-panel').classList.remove('open');
+  }
+});
 function toggleChat() { document.getElementById('chat-panel').classList.toggle('open'); }
 async function sendChat() {
   const name = document.getElementById('chat-name').value.trim();

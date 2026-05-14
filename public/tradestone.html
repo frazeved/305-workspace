@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>305 Workspace â€” Samantha</title>
+  <title>305 Workspace â€" Samantha</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
@@ -40,7 +40,7 @@
       min-height: 100vh;
     }
 
-    /* â”€â”€ NAV â”€â”€ */
+    /* â"€â"€ NAV â"€â"€ */
     nav {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
@@ -105,7 +105,7 @@
       font-weight: 400;
     }
 
-    /* â”€â”€ LAYOUT â”€â”€ */
+    /* â"€â"€ LAYOUT â"€â"€ */
     .layout {
       display: flex;
       align-items: flex-start;
@@ -115,7 +115,7 @@
       padding: 32px 24px 60px;
     }
 
-    /* â”€â”€ LEFT SIDEBAR â”€â”€ */
+    /* â"€â"€ LEFT SIDEBAR â"€â"€ */
     .sidebar {
       width: 240px;
       flex-shrink: 0;
@@ -198,7 +198,7 @@
       border-radius: 20px;
     }
 
-    /* â”€â”€ CHAT TOGGLE BUTTON â”€â”€ */
+    /* â"€â"€ CHAT TOGGLE BUTTON â"€â"€ */
     .chat-toggle {
       width: 100%;
       display: flex;
@@ -218,7 +218,7 @@
     .chat-toggle:hover { background: var(--accent-light); border-color: #bfdbfe; }
     .chat-toggle svg { flex-shrink: 0; }
 
-    /* â”€â”€ INLINE CHAT PANEL â”€â”€ */
+    /* â"€â"€ INLINE CHAT PANEL â"€â"€ */
     .sidebar-chat {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -329,10 +329,10 @@
       display: none;
     }
 
-    /* â”€â”€ RIGHT CONTENT â”€â”€ */
+    /* â"€â"€ RIGHT CONTENT â"€â"€ */
     .content { flex: 1; min-width: 0; }
 
-    /* â”€â”€ SECTION HEADER â”€â”€ */
+    /* â"€â"€ SECTION HEADER â"€â"€ */
     .section-header {
       display: flex;
       align-items: center;
@@ -390,7 +390,7 @@
     .btn-run.loading .spinner { display: block; }
     .btn-run.loading .btn-label { display: none; }
 
-    /* â”€â”€ TASK GRID â”€â”€ */
+    /* â"€â"€ TASK GRID â"€â"€ */
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -489,7 +489,7 @@
 
     .card-link:hover { background: #dbeafe; }
 
-    /* â”€â”€ TOAST â”€â”€ */
+    /* â"€â"€ TOAST â"€â"€ */
     .section-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .btn-database { background: #ede9fe; color: #6d28d9; border: 1px solid #c4b5fd; border-radius: 8px; padding: 8px 18px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: not-allowed; display: flex; align-items: center; gap: 7px; }
     .toast {
@@ -529,6 +529,77 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+  
+    /* == SHARED NAV DROPDOWN == */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .nav-brand {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.3px;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .nav-brand span { color: var(--accent); }
+    .nav-dropdown { position: relative; margin-left: auto; }
+    .nav-menu-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    .nav-menu-btn:hover { background: #eaecf2; border-color: #c9cdd8; }
+    .nav-menu-panel {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.13);
+      min-width: 220px;
+      padding: 6px;
+      z-index: 200;
+    }
+    .nav-menu-panel.open { display: block; }
+    .nav-menu-item {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 9px 14px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text-secondary);
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+    .nav-menu-item:hover { background: var(--bg); color: var(--text); }
+    .nav-menu-item.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+    @media (max-width: 640px) { nav { padding: 0 16px; } }
   </style>
 </head>
 <body>
@@ -536,20 +607,26 @@
 <!-- NAV -->
 <nav>
   <div class="nav-brand">305 <span>Workspace</span></div>
-  <button class="nav-hamburger" onclick="toggleNav()" aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
-  <div class="nav-links" id="nav-links">
-    <a class="nav-link" href="/">&#8592; Home</a>
-    <a class="nav-link" href="warehouse.html">Warehouse Now</a>
-    <a class="nav-link" href="production.html">Production</a>
-    <a class="nav-link" href="samples.html">Samples Tracking</a>
-    <a class="nav-link" href="design.html">Design</a>
-    <a class="nav-link" href="shipment.html">New Shipment</a>
-    <a class="nav-link" href="map.html">Map Updates</a>
-    <a class="nav-link" href="forecast.html">Forecast</a>
-    <a class="nav-link" href="gantt.html">Gantt Chart</a>
-    <a class="nav-link active" href="tradestone.html">Tradestone Updates</a>
-    <a class="nav-link" href="rlm.html">RLM Updates</a>
-    <a class="nav-link" href="dhl.html">DHL Duties Cost</a>
+  <div class="nav-dropdown" id="nav-dropdown">
+    <button class="nav-menu-btn" onclick="toggleNav()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      Menu
+    </button>
+    <div class="nav-menu-panel" id="nav-panel">
+      <a class="nav-menu-item" href="/">Home</a>
+      <a class="nav-menu-item" href="design.html">Design</a>
+      <a class="nav-menu-item" href="production.html">Production</a>
+      <a class="nav-menu-item" href="samples.html">Anthropologie Samples Tracking</a>
+      <a class="nav-menu-item" href="warehouse.html">Warehouse Now</a>
+      <a class="nav-menu-item" href="gantt.html">Gantt Chart</a>
+      <a class="nav-menu-item" href="map.html">Map Updates</a>
+      <a class="nav-menu-item" href="shipment.html">New Shipment</a>
+      <a class="nav-menu-item" href="forecast.html">Forecast</a>
+      <a class="nav-menu-item active" href="tradestone.html">Tradestone Updates</a>
+      <a class="nav-menu-item" href="rlm.html">RLM Updates</a>
+      <a class="nav-menu-item" href="dhl.html">DHL Duties Cost</a>
+      <a class="nav-menu-item" href="main-line.html">Main Line Sample Management</a>
+    </div>
   </div>
 </nav>
 
@@ -568,7 +645,7 @@
       <div class="sidebar-name">Samantha</div>
       <div class="sidebar-title">Data Extraction Specialist<br>TradeStone PLM</div>
       <div class="sidebar-desc">
-        Samantha connects to TradeStone PLM, runs your PO extractions on schedule or on demand, and delivers clean data directly to Google Sheets â€” no manual work required.
+        Samantha connects to TradeStone PLM, runs your PO extractions on schedule or on demand, and delivers clean data directly to Google Sheets â€" no manual work required.
       </div>
       <div class="sidebar-tags">
         <span class="sidebar-tag">TradeStone PLM</span>
@@ -666,7 +743,12 @@
 <div class="toast" id="toast"></div>
 
 <script>
-function toggleNav() { document.getElementById('nav-links').classList.toggle('open'); }
+function toggleNav() { document.getElementById('nav-panel').classList.toggle('open'); }
+document.addEventListener('click', function(e) {
+  if (!document.getElementById('nav-dropdown').contains(e.target)) {
+    document.getElementById('nav-panel').classList.remove('open');
+  }
+});
 function toggleChat() {
   document.getElementById('chat-panel').classList.toggle('open');
 }
@@ -726,7 +808,7 @@ function badgeLabel(status, conclusion) {
 }
 
 function timeAgo(iso) {
-  if (!iso) return 'â€”';
+  if (!iso) return 'â€"';
   const diff = Math.floor((Date.now() - new Date(iso)) / 1000);
   if (diff < 60) return `${diff}s ago`;
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
@@ -735,12 +817,12 @@ function timeAgo(iso) {
 }
 
 function formatDate(iso) {
-  if (!iso) return 'â€”';
+  if (!iso) return 'â€"';
   return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 function formatDuration(s) {
-  if (s === null || s === undefined) return 'â€”';
+  if (s === null || s === undefined) return 'â€"';
   if (s < 60) return `${s}s`;
   return `${Math.floor(s / 60)}m ${s % 60}s`;
 }

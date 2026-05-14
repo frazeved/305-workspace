@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>305 Workspace â€” DHL Duties Cost</title>
+  <title>305 Workspace â€" DHL Duties Cost</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
@@ -104,30 +104,107 @@
       .nav-links.open { display: flex; }
       .nav-link { padding: 10px 20px; border-radius: 0; font-size: 13px; }
     }
+  
+    /* == SHARED NAV DROPDOWN == */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .nav-brand {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.3px;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .nav-brand span { color: var(--accent); }
+    .nav-dropdown { position: relative; margin-left: auto; }
+    .nav-menu-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    .nav-menu-btn:hover { background: #eaecf2; border-color: #c9cdd8; }
+    .nav-menu-panel {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.13);
+      min-width: 220px;
+      padding: 6px;
+      z-index: 200;
+    }
+    .nav-menu-panel.open { display: block; }
+    .nav-menu-item {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 9px 14px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text-secondary);
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+    .nav-menu-item:hover { background: var(--bg); color: var(--text); }
+    .nav-menu-item.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+    @media (max-width: 640px) { nav { padding: 0 16px; } }
   </style>
 </head>
 <body>
 <nav>
   <div class="nav-brand">305 <span>Workspace</span></div>
-  <button class="nav-hamburger" onclick="toggleNav()" aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
-  <div class="nav-links" id="nav-links">
-    <a class="nav-link" href="/">&#8592; Home</a>
-    <a class="nav-link" href="warehouse.html">Warehouse Now</a>
-    <a class="nav-link" href="production.html">Production</a>
-    <a class="nav-link" href="samples.html">Samples Tracking</a>
-    <a class="nav-link" href="design.html">Design</a>
-    <a class="nav-link" href="shipment.html">New Shipment</a>
-    <a class="nav-link" href="map.html">Map Updates</a>
-    <a class="nav-link" href="forecast.html">Forecast</a>
-    <a class="nav-link" href="gantt.html">Gantt Chart</a>
-    <a class="nav-link" href="tradestone.html">Tradestone Updates</a>
-    <a class="nav-link" href="rlm.html">RLM Updates</a>
-    <a class="nav-link active" href="dhl.html">DHL Duties Cost</a>
+  <div class="nav-dropdown" id="nav-dropdown">
+    <button class="nav-menu-btn" onclick="toggleNav()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      Menu
+    </button>
+    <div class="nav-menu-panel" id="nav-panel">
+      <a class="nav-menu-item" href="/">Home</a>
+      <a class="nav-menu-item" href="design.html">Design</a>
+      <a class="nav-menu-item" href="production.html">Production</a>
+      <a class="nav-menu-item" href="samples.html">Anthropologie Samples Tracking</a>
+      <a class="nav-menu-item" href="warehouse.html">Warehouse Now</a>
+      <a class="nav-menu-item" href="gantt.html">Gantt Chart</a>
+      <a class="nav-menu-item" href="map.html">Map Updates</a>
+      <a class="nav-menu-item" href="shipment.html">New Shipment</a>
+      <a class="nav-menu-item" href="forecast.html">Forecast</a>
+      <a class="nav-menu-item" href="tradestone.html">Tradestone Updates</a>
+      <a class="nav-menu-item" href="rlm.html">RLM Updates</a>
+      <a class="nav-menu-item active" href="dhl.html">DHL Duties Cost</a>
+      <a class="nav-menu-item" href="main-line.html">Main Line Sample Management</a>
+    </div>
   </div>
 </nav>
 
 <div class="mode-bar">
-  <span>DHL Duties Cost â€” New Entry</span>
+  <span>DHL Duties Cost â€" New Entry</span>
   <a href="dhl.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Back to DHL</a>
 </div>
 
@@ -138,7 +215,7 @@
     <div class="form-logos">
       <img src="FARM RIO LOGO.png" alt="Farm Rio" class="logo-fr" />
       <span style="font-size:13px; font-weight:700; color:#1a56db; letter-spacing:0.5px;">DHL Duties Cost Entry</span>
-      <span style="margin-left:auto; font-size:10px; font-weight:700; color:#9ca3af; letter-spacing:1px; text-transform:uppercase;">305 WORKSPACE â€” INTERNAL TOOL</span>
+      <span style="margin-left:auto; font-size:10px; font-weight:700; color:#9ca3af; letter-spacing:1px; text-transform:uppercase;">305 WORKSPACE â€" INTERNAL TOOL</span>
     </div>
 
     <!-- FORM BODY -->
@@ -157,19 +234,19 @@
           </button>
         </div>
         <div class="styles-hdr"><span class="styles-hdr-label">Sample Type</span></div>
-        <div class="style-row"><span class="style-label">STYLE 1</span><input type="text" class="style-input" /><select class="style-select"><option value="">â€”</option><option>Proto</option><option>SMS</option><option>TOP</option><option>PP</option><option>Photo</option></select></div>
-        <div class="style-row"><span class="style-label">STYLE 2</span><input type="text" class="style-input" /><select class="style-select"><option value="">â€”</option><option>Proto</option><option>SMS</option><option>TOP</option><option>PP</option><option>Photo</option></select></div>
-        <div class="style-row"><span class="style-label">STYLE 3</span><input type="text" class="style-input" /><select class="style-select"><option value="">â€”</option><option>Proto</option><option>SMS</option><option>TOP</option><option>PP</option><option>Photo</option></select></div>
-        <div class="style-row"><span class="style-label">STYLE 4</span><input type="text" class="style-input" /><select class="style-select"><option value="">â€”</option><option>Proto</option><option>SMS</option><option>TOP</option><option>PP</option><option>Photo</option></select></div>
-        <div class="style-row"><span class="style-label">STYLE 5</span><input type="text" class="style-input" /><select class="style-select"><option value="">â€”</option><option>Proto</option><option>SMS</option><option>TOP</option><option>PP</option><option>Photo</option></select></div>
-        <div class="style-row"><span class="style-label">STYLE 6</span><input type="text" class="style-input" /><select class="style-select"><option value="">â€”</option><option>Proto</option><option>SMS</option><option>TOP</option><option>PP</option><option>Photo</option></select></div>
-        <div class="style-row"><span class="style-label">STYLE 7</span><input type="text" class="style-input" /><select class="style-select"><option value="">â€”</option><option>Proto</option><option>SMS</option><option>TOP</option><option>PP</option><option>Photo</option></select></div>
+        <div class="style-row"><span class="style-label">STYLE 1</span><input type="text" class="style-input" /><select class="style-select"><option value="">â€"</option><option>Proto</option><option>SMS</option><option>TOP</option><option>PP</option><option>Photo</option></select></div>
+        <div class="style-row"><span class="style-label">STYLE 2</span><input type="text" class="style-input" /><select class="style-select"><option value="">â€"</option><option>Proto</option><option>SMS</option><option>TOP</option><option>PP</option><option>Photo</option></select></div>
+        <div class="style-row"><span class="style-label">STYLE 3</span><input type="text" class="style-input" /><select class="style-select"><option value="">â€"</option><option>Proto</option><option>SMS</option><option>TOP</option><option>PP</option><option>Photo</option></select></div>
+        <div class="style-row"><span class="style-label">STYLE 4</span><input type="text" class="style-input" /><select class="style-select"><option value="">â€"</option><option>Proto</option><option>SMS</option><option>TOP</option><option>PP</option><option>Photo</option></select></div>
+        <div class="style-row"><span class="style-label">STYLE 5</span><input type="text" class="style-input" /><select class="style-select"><option value="">â€"</option><option>Proto</option><option>SMS</option><option>TOP</option><option>PP</option><option>Photo</option></select></div>
+        <div class="style-row"><span class="style-label">STYLE 6</span><input type="text" class="style-input" /><select class="style-select"><option value="">â€"</option><option>Proto</option><option>SMS</option><option>TOP</option><option>PP</option><option>Photo</option></select></div>
+        <div class="style-row"><span class="style-label">STYLE 7</span><input type="text" class="style-input" /><select class="style-select"><option value="">â€"</option><option>Proto</option><option>SMS</option><option>TOP</option><option>PP</option><option>Photo</option></select></div>
       </div>
 
       <!-- MIDDLE: Ship info + SEND -->
       <div class="form-col">
         <div class="f-row"><span class="f-label w120">SHIP DATE</span><input type="text" class="f-input" /></div>
-        <div class="f-row"><span class="f-label w120">SUPPLIER</span><select class="f-select"><option value="">â€”</option></select></div>
+        <div class="f-row"><span class="f-label w120">SUPPLIER</span><select class="f-select"><option value="">â€"</option></select></div>
         <div class="f-row"><span class="f-label w120">SENDER NAME</span><input type="text" class="f-input" /></div>
         <div class="f-row"><span class="f-label w120">SENDER EMAIL</span><input type="text" class="f-input" /></div>
         <div class="send-area">
@@ -183,8 +260,8 @@
       <!-- RIGHT: Financial info -->
       <div class="form-col">
         <div class="f-row"><span class="f-label w140">DUTY AMOUNT</span><input type="text" class="f-input" /></div>
-        <div class="f-row"><span class="f-label w140">DUTIES STATUS</span><select class="f-select"><option value="">â€”</option><option>Pending</option><option>Approved</option><option>Settled</option><option>Disputed</option></select></div>
-        <div class="f-row"><span class="f-label w140">BILLED TO</span><select class="f-select"><option value="">â€”</option></select></div>
+        <div class="f-row"><span class="f-label w140">DUTIES STATUS</span><select class="f-select"><option value="">â€"</option><option>Pending</option><option>Approved</option><option>Settled</option><option>Disputed</option></select></div>
+        <div class="f-row"><span class="f-label w140">BILLED TO</span><select class="f-select"><option value="">â€"</option></select></div>
         <div class="f-row"><span class="f-label w140">BILLING DATE</span><input type="text" class="f-input" /></div>
         <div class="f-row"><span class="f-label w140">INVOICE LINK</span><input type="text" class="f-input" /></div>
       </div>
@@ -194,7 +271,12 @@
 </div>
 
 <script>
-function toggleNav() { document.getElementById('nav-links').classList.toggle('open'); }
+function toggleNav() { document.getElementById('nav-panel').classList.toggle('open'); }
+document.addEventListener('click', function(e) {
+  if (!document.getElementById('nav-dropdown').contains(e.target)) {
+    document.getElementById('nav-panel').classList.remove('open');
+  }
+});
 </script>
 <script src="/auth.js"></script>
 </body>

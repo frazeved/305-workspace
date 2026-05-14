@@ -112,28 +112,103 @@
       .kpi-val { font-size: 20px; }
       .row-3 { grid-template-columns: 1fr; }
     }
+  
+    /* == SHARED NAV DROPDOWN == */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .nav-brand {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.3px;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .nav-brand span { color: var(--accent); }
+    .nav-dropdown { position: relative; margin-left: auto; }
+    .nav-menu-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    .nav-menu-btn:hover { background: #eaecf2; border-color: #c9cdd8; }
+    .nav-menu-panel {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.13);
+      min-width: 220px;
+      padding: 6px;
+      z-index: 200;
+    }
+    .nav-menu-panel.open { display: block; }
+    .nav-menu-item {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 9px 14px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text-secondary);
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+    .nav-menu-item:hover { background: var(--bg); color: var(--text); }
+    .nav-menu-item.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+    @media (max-width: 640px) { nav { padding: 0 16px; } }
   </style>
 </head>
 <body>
 
 <nav>
   <div class="nav-brand">305 <span>Workspace</span></div>
-  <button class="nav-hamburger" onclick="document.getElementById('nav-links').classList.toggle('open')" aria-label="Menu">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-  </button>
-  <div class="nav-links" id="nav-links">
-    <a class="nav-link" href="/">&#8592; Home</a>
-    <a class="nav-link" href="warehouse.html">Warehouse Now</a>
-    <a class="nav-link" href="production.html">Production</a>
-    <a class="nav-link" href="samples.html">Samples Tracking</a>
-    <a class="nav-link" href="design.html">Design</a>
-    <a class="nav-link" href="shipment.html">New Shipment</a>
-    <a class="nav-link active" href="map.html">Map Updates</a>
-    <a class="nav-link" href="forecast.html">Forecast</a>
-    <a class="nav-link" href="gantt.html">Gantt Chart</a>
-    <a class="nav-link" href="tradestone.html">Tradestone Updates</a>
-    <a class="nav-link" href="rlm.html">RLM Updates</a>
-    <a class="nav-link" href="dhl.html">DHL Duties Cost</a>
+  <div class="nav-dropdown" id="nav-dropdown">
+    <button class="nav-menu-btn" onclick="toggleNav()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      Menu
+    </button>
+    <div class="nav-menu-panel" id="nav-panel">
+      <a class="nav-menu-item" href="/">Home</a>
+      <a class="nav-menu-item" href="design.html">Design</a>
+      <a class="nav-menu-item" href="production.html">Production</a>
+      <a class="nav-menu-item" href="samples.html">Anthropologie Samples Tracking</a>
+      <a class="nav-menu-item" href="warehouse.html">Warehouse Now</a>
+      <a class="nav-menu-item" href="gantt.html">Gantt Chart</a>
+      <a class="nav-menu-item active" href="map.html">Map Updates</a>
+      <a class="nav-menu-item" href="shipment.html">New Shipment</a>
+      <a class="nav-menu-item" href="forecast.html">Forecast</a>
+      <a class="nav-menu-item" href="tradestone.html">Tradestone Updates</a>
+      <a class="nav-menu-item" href="rlm.html">RLM Updates</a>
+      <a class="nav-menu-item" href="dhl.html">DHL Duties Cost</a>
+      <a class="nav-menu-item" href="main-line.html">Main Line Sample Management</a>
+    </div>
   </div>
 </nav>
 
@@ -163,10 +238,10 @@
 
   <!-- KPIs -->
   <div class="kpi-strip">
-    <div class="kpi k1"><div class="kpi-lbl">Total Styles</div><div class="kpi-val" id="kpi-styles">â€”</div><div class="kpi-sub">in MAP 2026</div></div>
-    <div class="kpi k2"><div class="kpi-lbl">Invoice Total 2026</div><div class="kpi-val" id="kpi-inv">â€”</div><div class="kpi-sub">URBN invoiced</div></div>
-    <div class="kpi k3"><div class="kpi-lbl">Suppliers</div><div class="kpi-val" id="kpi-sup">â€”</div><div class="kpi-sub">active</div></div>
-    <div class="kpi k4"><div class="kpi-lbl">Brands</div><div class="kpi-val" id="kpi-brands">â€”</div><div class="kpi-sub">in MAP</div></div>
+    <div class="kpi k1"><div class="kpi-lbl">Total Styles</div><div class="kpi-val" id="kpi-styles">â€"</div><div class="kpi-sub">in MAP 2026</div></div>
+    <div class="kpi k2"><div class="kpi-lbl">Invoice Total 2026</div><div class="kpi-val" id="kpi-inv">â€"</div><div class="kpi-sub">URBN invoiced</div></div>
+    <div class="kpi k3"><div class="kpi-lbl">Suppliers</div><div class="kpi-val" id="kpi-sup">â€"</div><div class="kpi-sub">active</div></div>
+    <div class="kpi k4"><div class="kpi-lbl">Brands</div><div class="kpi-val" id="kpi-brands">â€"</div><div class="kpi-sub">in MAP</div></div>
   </div>
 
   <!-- ROW 1: Donut + Monthly Bar -->
@@ -181,7 +256,7 @@
     <div class="chart-card">
       <div class="chart-hd">
         <div class="chart-title">PO Invoiced by Month</div>
-        <div class="chart-sub">URBN Invoice Total â€” 2026</div>
+        <div class="chart-sub">URBN Invoice Total â€" 2026</div>
       </div>
       <div id="area-monthly"><div class="chart-spin"></div></div>
     </div>
@@ -226,7 +301,7 @@ const PALETTE = [
 
 const charts = {};
 
-/* â”€â”€ CSV PARSER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* â"€â"€ CSV PARSER â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */
 function parseCSV(text) {
   const rows = []; let row = [], field = '', inQ = false;
   for (let i = 0; i < text.length; i++) {
@@ -263,7 +338,7 @@ function fmt$(n) {
   return '$' + Math.round(n);
 }
 
-/* â”€â”€ CHART HELPERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* â"€â"€ CHART HELPERS â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */
 function destroyChart(key) { if (charts[key]) { charts[key].destroy(); delete charts[key]; } }
 
 function buildDonut(areaId, key, labels, values, colors, centerVal, centerLbl) {
@@ -347,7 +422,7 @@ function buildBar(areaId, key, labels, values, color, fmtFn, horizontal) {
   });
 }
 
-/* â”€â”€ GROUP + SORT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* â"€â"€ GROUP + SORT â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */
 function groupSum(data, groupFn, valFn, topN) {
   const map = {};
   data.forEach(r => {
@@ -368,7 +443,7 @@ function groupCount(data, groupFn, topN) {
   return { labels: top.map(([k]) => k), values: top.map(([,v]) => v) };
 }
 
-/* â”€â”€ BUILD ALL CHARTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* â"€â"€ BUILD ALL CHARTS â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */
 function buildAll(rows) {
   const H    = rows[0];
   const data = rows.slice(1).filter(r => r.some(c => (c||'').trim()));
@@ -395,10 +470,10 @@ function buildAll(rows) {
   });
   document.getElementById('kpi-styles').textContent  = data.length;
   document.getElementById('kpi-inv').textContent      = fmt$(totalInv);
-  document.getElementById('kpi-sup').textContent      = suppliers.size || 'â€”';
-  document.getElementById('kpi-brands').textContent   = brands.size    || 'â€”';
+  document.getElementById('kpi-sup').textContent      = suppliers.size || 'â€"';
+  document.getElementById('kpi-brands').textContent   = brands.size    || 'â€"';
 
-  /* Chart 1 â€” Styles by Status */
+  /* Chart 1 â€" Styles by Status */
   const statusData = groupCount(data, r => get(r, C.status) || 'Unknown');
   if (statusData.labels.length) {
     const colors = statusData.labels.map((_, i) => PALETTE[i % PALETTE.length]);
@@ -407,7 +482,7 @@ function buildAll(rows) {
     document.getElementById('area-status').innerHTML = '<div class="chart-empty">No status data</div>';
   }
 
-  /* Chart 2 â€” PO Invoiced by Month */
+  /* Chart 2 â€" PO Invoiced by Month */
   const monthly = new Array(12).fill(0);
   data.forEach(r => {
     const raw = get(r, C.invDate);
@@ -420,7 +495,7 @@ function buildAll(rows) {
   const peakIdx = monthly.indexOf(Math.max(...monthly));
   buildBar('area-monthly', 'monthly', MONTHS, monthly, '#4f46e5', fmt$, false);
 
-  /* Chart 3 â€” Invoiced by Category */
+  /* Chart 3 â€" Invoiced by Category */
   const catData = groupSum(data, r => get(r, C.category) || 'Unknown', invAmt, 10);
   if (catData.labels.length) {
     buildBar('area-category', 'category', catData.labels, catData.values, '#0891b2', fmt$, true);
@@ -428,7 +503,7 @@ function buildAll(rows) {
     document.getElementById('area-category').innerHTML = '<div class="chart-empty">No category data</div>';
   }
 
-  /* Chart 4 â€” Invoiced by Brand */
+  /* Chart 4 â€" Invoiced by Brand */
   const brandData = groupSum(data, r => get(r, C.brand) || 'Unknown', invAmt, 10);
   if (brandData.labels.length) {
     buildBar('area-brand', 'brand', brandData.labels, brandData.values, '#7c3aed', fmt$, true);
@@ -436,7 +511,7 @@ function buildAll(rows) {
     document.getElementById('area-brand').innerHTML = '<div class="chart-empty">No brand data</div>';
   }
 
-  /* Chart 5 â€” Total Invoice by Supplier */
+  /* Chart 5 â€" Total Invoice by Supplier */
   const supData = groupSum(data, r => get(r, C.supplier) || 'Unknown', invAmt, 12);
   if (supData.labels.length) {
     buildBar('area-supplier', 'supplier', supData.labels, supData.values, '#d97706', fmt$, true);
@@ -448,13 +523,13 @@ function buildAll(rows) {
   setMsg('info', `${data.length} rows Â· ${t}`);
 }
 
-/* â”€â”€ LOAD CHARTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* â"€â"€ LOAD CHARTS â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */
 async function loadCharts() {
   setMsg('info', 'Loading...');
   setBtns(false, true);
   ['area-status','area-monthly','area-category','area-brand','area-supplier']
     .forEach(id => { document.getElementById(id).innerHTML = '<div class="chart-spin"></div>'; });
-  ['kpi-styles','kpi-inv','kpi-sup','kpi-brands'].forEach(id => document.getElementById(id).textContent = 'â€”');
+  ['kpi-styles','kpi-inv','kpi-sup','kpi-brands'].forEach(id => document.getElementById(id).textContent = 'â€"');
   try {
     const res  = await fetch(DATA_URL);
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -469,7 +544,7 @@ async function loadCharts() {
   setBtns(true, false);
 }
 
-/* â”€â”€ DATA SYNC â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* â"€â"€ DATA SYNC â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€ */
 async function runSync() {
   setBtns(false, false);
   setMsg('info', 'Syncing data...');
@@ -477,7 +552,7 @@ async function runSync() {
     const res  = await fetch('/api/gabriel/map-sync', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
     const data = await res.json();
     if (!res.ok || !data.ok) throw new Error(data.error || 'Sync failed');
-    setMsg('ok', `Sync done â€” ${data.newPOs} new POs, ${data.updated} rows updated`);
+    setMsg('ok', `Sync done â€" ${data.newPOs} new POs, ${data.updated} rows updated`);
     await loadCharts();
   } catch(e) {
     setMsg('err', e.message);

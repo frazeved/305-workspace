@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>305 Workspace â€” FedEx Labels Print</title>
+  <title>305 Workspace â€" FedEx Labels Print</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
@@ -35,7 +35,7 @@
 
     .page-wrap { flex: 1; padding: 20px 28px 48px; max-width: 1100px; margin: 0 auto; width: 100%; }
 
-    /* â”€â”€ Search card â”€â”€ */
+    /* â"€â"€ Search card â"€â"€ */
     .search-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin-bottom: 20px; }
     .search-card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 16px; }
     .search-row { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
@@ -52,14 +52,14 @@
     .btn-clear { font-family: inherit; font-size: 12px; font-weight: 500; padding: 8px 12px; background: none; color: var(--muted); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: background 0.15s; }
     .btn-clear:hover { background: var(--bg); }
 
-    /* â”€â”€ Status bar â”€â”€ */
+    /* â"€â"€ Status bar â"€â"€ */
     .result-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; min-height: 24px; }
     .result-text { font-size: 12px; color: var(--muted); }
     .btn-generate { font-family: inherit; font-size: 12px; font-weight: 700; padding: 9px 20px; background: var(--orange); color: #fff; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: opacity 0.15s; }
     .btn-generate:hover:not(:disabled) { opacity: 0.88; }
     .btn-generate:disabled { opacity: 0.35; cursor: default; }
 
-    /* â”€â”€ Results table â”€â”€ */
+    /* â"€â"€ Results table â"€â"€ */
     .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
     .table-scroll { overflow-x: auto; }
     table { border-collapse: collapse; table-layout: auto; white-space: nowrap; }
@@ -111,30 +111,103 @@
       .search-input { width: 100%; }
       .search-divider { display: none; }
     }
+  
+    /* == SHARED NAV DROPDOWN == */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .nav-brand {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.3px;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .nav-brand span { color: var(--accent); }
+    .nav-dropdown { position: relative; margin-left: auto; }
+    .nav-menu-btn {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    .nav-menu-btn:hover { background: #eaecf2; border-color: #c9cdd8; }
+    .nav-menu-panel {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.13);
+      min-width: 220px;
+      padding: 6px;
+      z-index: 200;
+    }
+    .nav-menu-panel.open { display: block; }
+    .nav-menu-item {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 9px 14px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text-secondary);
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+    .nav-menu-item:hover { background: var(--bg); color: var(--text); }
+    .nav-menu-item.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+    @media (max-width: 640px) { nav { padding: 0 16px; } }
   </style>
 </head>
 <body>
 
 <nav>
   <div class="nav-brand">305 <span>Workspace</span></div>
-  <button class="nav-hamburger" onclick="document.getElementById('nav-links').classList.toggle('open')" aria-label="Menu">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-  </button>
-  <div class="nav-links" id="nav-links">
-    <a class="nav-link" href="/">&#8592; Home</a>
-    <a class="nav-link" href="warehouse.html">Warehouse Now</a>
-    <a class="nav-link active" href="fedex-labels.html">FedEx Labels</a>
-    <a class="nav-link" href="fedex-dashboard.html">FedEx Status</a>
-    <a class="nav-link" href="production.html">Production</a>
-    <a class="nav-link" href="samples.html">Samples Tracking</a>
-    <a class="nav-link" href="design.html">Design</a>
-    <a class="nav-link" href="shipment.html">New Shipment</a>
-    <a class="nav-link" href="map.html">Map Updates</a>
-    <a class="nav-link" href="forecast.html">Forecast</a>
-    <a class="nav-link" href="gantt.html">Gantt Chart</a>
-    <a class="nav-link" href="tradestone.html">Tradestone Updates</a>
-    <a class="nav-link" href="rlm.html">RLM Updates</a>
-    <a class="nav-link" href="dhl.html">DHL Duties Cost</a>
+  <div class="nav-dropdown" id="nav-dropdown">
+    <button class="nav-menu-btn" onclick="toggleNav()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      Menu
+    </button>
+    <div class="nav-menu-panel" id="nav-panel">
+      <a class="nav-menu-item" href="/">Home</a>
+      <a class="nav-menu-item" href="design.html">Design</a>
+      <a class="nav-menu-item" href="production.html">Production</a>
+      <a class="nav-menu-item" href="samples.html">Anthropologie Samples Tracking</a>
+      <a class="nav-menu-item active" href="warehouse.html">Warehouse Now</a>
+      <a class="nav-menu-item" href="gantt.html">Gantt Chart</a>
+      <a class="nav-menu-item" href="map.html">Map Updates</a>
+      <a class="nav-menu-item" href="shipment.html">New Shipment</a>
+      <a class="nav-menu-item" href="forecast.html">Forecast</a>
+      <a class="nav-menu-item" href="tradestone.html">Tradestone Updates</a>
+      <a class="nav-menu-item" href="rlm.html">RLM Updates</a>
+      <a class="nav-menu-item" href="dhl.html">DHL Duties Cost</a>
+      <a class="nav-menu-item" href="main-line.html">Main Line Sample Management</a>
+    </div>
   </div>
 </nav>
 
@@ -264,7 +337,7 @@ const PACKAGING = {
 };
 
 let sheetRows    = null; // cached Warehouse Now rows
-let deliverToMap = null; // cached po# â†’ { code, desc } from PO DETAIL
+let deliverToMap = null; // cached po# â†' { code, desc } from PO DETAIL
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -319,7 +392,7 @@ function getBoxSize(supplier) {
 }
 
 function serviceOptions(selected) {
-  return `<option value="">â€” Select Service â€”</option>` +
+  return `<option value="">â€" Select Service â€"</option>` +
     SERVICES.map(s => `<option value="${s.code}" ${s.code===selected?'selected':''}>${s.label}</option>`).join('');
 }
 
@@ -450,31 +523,31 @@ function renderResults(rows, dtMap, label) {
 
     const statusBadge = norm(r.status).includes('shipped')
       ? `<span class="status-badge badge-sh"><span class="s-dot"></span>${esc(r.status)}</span>`
-      : `<span class="status-badge badge-other"><span class="s-dot"></span>${esc(r.status)||'â€”'}</span>`;
+      : `<span class="status-badge badge-other"><span class="s-dot"></span>${esc(r.status)||'â€"'}</span>`;
     const boxSizeHtml = boxSize
       ? `<span class="box-size-val">${boxSize}</span>`
       : `<span class="box-size-unknown">Unknown</span>`;
 
     const shipToHtml = shipCode
       ? `<span class="ship-code">${esc(shipCode)}</span>`
-      : `<span class="muted-val">â€”</span>`;
+      : `<span class="muted-val">â€"</span>`;
     const contactHtml = shipDesc
       ? esc(shipDesc)
-      : `<span class="muted-val">â€”</span>`;
+      : `<span class="muted-val">â€"</span>`;
 
     return `<tr data-idx="${i}" id="row-${i}" data-po="${esc(r.po)}" data-supplier="${esc(r.supplier)}" data-deliver-to="${esc(shipCode)}">
       <td class="td-check"><input type="checkbox" class="row-check" onchange="onRowCheck(${i})" /></td>
       <td><span class="style-val">${esc(r.style)}</span></td>
       <td><span class="po-val">${esc(r.po)}</span></td>
       <td>${statusBadge}</td>
-      <td><span class="supplier-val">${esc(r.supplier)||'â€”'}</span></td>
+      <td><span class="supplier-val">${esc(r.supplier)||'â€"'}</span></td>
       <td>${boxSizeHtml}</td>
       <td><input class="td-input" type="number" min="1" placeholder="Qty" id="qty-${i}" /></td>
       <td><input class="td-input" type="number" min="0.1" step="0.1" value="20" id="weight-${i}" /></td>
       <td><select class="td-select" id="service-${i}">${serviceOptions('FEDEX_GROUND')}</select></td>
       <td>${shipToHtml}</td>
       <td class="contact-val">${contactHtml}</td>
-      <td id="res-${i}" style="font-size:11px;color:var(--muted);">â€”</td>
+      <td id="res-${i}" style="font-size:11px;color:var(--muted);">â€"</td>
     </tr>`;
   }).join('');
 
@@ -551,7 +624,7 @@ async function generateLabels() {
         row.classList.remove('selected');
         cb.checked = false;
         const driveLink = data.driveUrl ? ` <a href="${data.driveUrl}" target="_blank" style="color:var(--accent)">PDF</a>` : '';
-        resCell.innerHTML = `<span style="color:#16a34a;font-weight:600;">âœ“ ${data.tracking}</span>${driveLink}<br><span style="color:var(--muted)">${data.cost || ''}</span>`;
+        resCell.innerHTML = `<span style="color:#16a34a;font-weight:600;">âœ" ${data.tracking}</span>${driveLink}<br><span style="color:var(--muted)">${data.cost || ''}</span>`;
       } else {
         resCell.innerHTML = `<span style="color:var(--red);" title="${esc(data.error||'')}">âœ— Error</span>`;
         showToast(`PO ${po}: ${data.error}`);
