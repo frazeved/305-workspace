@@ -46,6 +46,11 @@
     .tb-btn:hover { background: var(--accent-lt); }
     @keyframes spin { to { transform: rotate(360deg); } }
     .tb-btn.loading svg { animation: spin 0.8s linear infinite; }
+    .filter-pills { display: flex; gap: 6px; }
+    .filter-pill { font-family: inherit; font-size: 11px; font-weight: 700; padding: 5px 13px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer; letter-spacing: 0.3px; transition: all 0.15s; white-space: nowrap; }
+    .filter-pill:hover { background: var(--accent-lt); color: var(--accent); border-color: var(--accent); }
+    .filter-pill.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    @media (max-width: 640px) { .filter-pills { width: 100%; } .filter-pill { flex: 1; text-align: center; } }
 
     .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: inline-block; min-width: 100%; }
     .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -235,6 +240,10 @@
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
       Update FedEx
     </button>
+    <div class="filter-pills">
+      <button class="filter-pill active" id="pill-all" onclick="setFilter('all')">ALL SHIPPED</button>
+      <button class="filter-pill" id="pill-shipped-last" onclick="setFilter('shipped-last')">SHIPPED LAST</button>
+    </div>
   </div>
 
   <div class="table-wrap">
@@ -265,9 +274,40 @@
 const SHEET_ID = '1y0iL7PJldbVQmPIAnJi9wvA2hvjB8_aK2bU2kxvUf5Q';
 const CSV_URL  = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=99866922`;
 
+let allRows = []; // all SHIPPED rows, no date cutoff
 let rows = [];
-let sortCol = 3; // default: ship date tradestone
-let sortAsc = false; // newest first
+let sortCol = 3;
+let sortAsc = false;
+let activeFilter = 'all';
+
+function setFilter(f) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.toggle('active', p.id === 'pill-' + f));
+  applyFilter();
+}
+
+function applyFilter() {
+  if (activeFilter === 'shipped-last') {
+    // STATUS=SHIPPED + URBN INVOICE DATE empty — no date cutoff
+    rows = allRows.filter(r => !r[8]);
+  } else {
+    // Default: SHIPPED within last 30 days
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+    rows = allRows.filter(r => {
+      const shipDate = r[3];
+      if (shipDate) { const d = new Date(shipDate); if (!isNaN(d) && d < cutoff) return false; }
+      return true;
+    });
+  }
+  sortCol = 3; sortAsc = false;
+  document.querySelectorAll('th').forEach((th, i) => {
+    th.classList.toggle('sorted', i === 3);
+    const ic = th.querySelector('.sort-icon');
+    if (ic) ic.innerHTML = i === 3 ? '&#8595;' : '&#8597;';
+  });
+  renderRows(document.getElementById('search-input')?.value || '');
+}
 
 function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -375,9 +415,10 @@ function renderRows(filter) {
 
   if (!visible.length) {
     document.getElementById('tbody').innerHTML = `<tr class="msg-row"><td colspan="7">${q ? 'No results for "'+esc(q)+'".' : 'No shipped items found.'}</td></tr>`;
-    document.getElementById('status-text').textContent = q
-      ? `${visible.length} of ${rows.length} shipments Â· Status: Shipped`
-      : `${rows.length} shipment${rows.length!==1?'s':''} Â· Status: Shipped`;
+    const label = activeFilter === 'shipped-last' ? 'Shipped Last' : 'All Shipped';
+  document.getElementById('status-text').textContent = q
+      ? `${visible.length} of ${rows.length} · ${label}`
+      : `${rows.length} shipment${rows.length!==1?'s':''} · ${label}`;
     return;
   }
 
@@ -413,9 +454,10 @@ function renderRows(filter) {
     </tr>`;
   }).join('');
 
+  const label = activeFilter === 'shipped-last' ? 'Shipped Last' : 'All Shipped';
   document.getElementById('status-text').textContent = q
-    ? `${visible.length} of ${rows.length} shipments Â· Status: Shipped`
-    : `${rows.length} shipment${rows.length!==1?'s':''} Â· Status: Shipped`;
+    ? `${visible.length} of ${rows.length} · ${label}`
+    : `${rows.length} shipment${rows.length!==1?'s':''} · ${label}`;
 }
 
 function sortBy(col) {
@@ -444,7 +486,7 @@ async function loadData() {
     const H = raw[0];
     const data = raw.slice(1);
 
-    // Columns A-E are fixed positions. Tracking/Delivery are far right â€" find by name.
+    // Columns A-E are fixed positions. Tracking/Delivery/InvDate found by name.
     const C = {
       style:    0,
       po:       1,
@@ -453,12 +495,10 @@ async function loadData() {
       cancel:   4,
       tracking: colIdx(H, 'tracking number', 'tracking#', 'tracking', 'awb'),
       delivery: colIdx(H, 'delivery status', 'delivery'),
+      invDate:  colIdx(H, 'urbn invoice date'),
     };
 
     const get = (r,i) => i>=0 ? (r[i]||'').trim() : '';
-
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 30);
 
     // Pass 1: build style carry-forward across ALL rows (before any filtering)
     let lastStyle = '';
@@ -468,34 +508,25 @@ async function loadData() {
       return lastStyle;
     });
 
-    // Pass 2: filter to SHIPPED + last 30 days, attach the pre-computed style
-    rows = data
+    // Pass 2: collect ALL SHIPPED rows — date filtering done in applyFilter()
+    // Row tuple: [style, po, statusRaw, shipDate, cancel, tracking, delivery, cls, invDate]
+    allRows = data
       .map((r, i) => {
         const statusRaw = get(r, 2);
         if (!statusRaw.toLowerCase().includes('shipped')) return null;
-        const shipDate = get(r, 3);
-        if (shipDate) {
-          const d = new Date(shipDate);
-          if (!isNaN(d) && d < cutoff) return null;
-        }
         const style    = styleByRow[i];
         const po       = get(r, 1);
+        const shipDate = get(r, 3);
         const cancel   = get(r, 4);
         const tracking = get(r, C.tracking);
         const delivery = get(r, C.delivery);
+        const invDate  = get(r, C.invDate);
         const cls      = classifyDelivery(delivery);
-        return [style, po, statusRaw, shipDate, cancel, tracking, delivery, cls];
+        return [style, po, statusRaw, shipDate, cancel, tracking, delivery, cls, invDate];
       })
       .filter(Boolean);
 
-    sortCol = 3; sortAsc = false;
-    document.querySelectorAll('th').forEach((th,i) => {
-      th.classList.toggle('sorted', i===3);
-      const ic = th.querySelector('.sort-icon');
-      if(ic) ic.innerHTML = i===3 ? '&#8595;' : '&#8597;';
-    });
-
-    renderRows(document.getElementById('search-input')?.value || '');
+    applyFilter();
 
   } catch(e) {
     document.getElementById('tbody').innerHTML =
