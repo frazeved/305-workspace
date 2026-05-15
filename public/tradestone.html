@@ -529,6 +529,99 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+    /* ── Invoice modal ── */
+    .inv-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45); z-index: 500;
+      align-items: center; justify-content: center; padding: 16px;
+    }
+    .inv-overlay.open { display: flex; }
+    .inv-modal {
+      background: var(--surface); border-radius: 14px;
+      width: min(560px, 100%); max-height: 85vh;
+      display: flex; flex-direction: column;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+    .inv-modal-head {
+      padding: 20px 22px 16px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+    }
+    .inv-modal-title { font-size: 15px; font-weight: 700; color: var(--text); }
+    .inv-modal-sub   { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .inv-modal-close {
+      background: none; border: none; font-size: 20px; color: var(--text-muted);
+      cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; transition: background 0.15s;
+    }
+    .inv-modal-close:hover { background: var(--bg); color: var(--text); }
+    .inv-modal-body { flex: 1; overflow-y: auto; padding: 16px 22px; }
+    .inv-modal-foot {
+      padding: 14px 22px; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+      gap: 10px;
+    }
+    /* select-all bar */
+    .inv-selall {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; border-radius: 8px; background: var(--bg);
+      margin-bottom: 10px; cursor: pointer; user-select: none;
+    }
+    .inv-selall input[type="checkbox"] { width: 15px; height: 15px; cursor: pointer; accent-color: var(--accent); }
+    .inv-selall-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+    /* PO rows */
+    .inv-po-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 9px 10px; border-radius: 8px; cursor: pointer;
+      border: 1px solid transparent; transition: background 0.12s, border-color 0.12s;
+    }
+    .inv-po-row:hover { background: var(--accent-light); border-color: #bfdbfe; }
+    .inv-po-row.selected { background: var(--accent-light); border-color: #bfdbfe; }
+    .inv-po-row input[type="checkbox"] { width: 15px; height: 15px; cursor: pointer; accent-color: var(--accent); flex-shrink: 0; }
+    .inv-po-style { font-size: 12px; font-weight: 600; color: var(--text); min-width: 80px; }
+    .inv-po-num   { font-size: 12px; color: var(--text-secondary); font-family: monospace; }
+    .inv-po-sep   { width: 1px; height: 14px; background: var(--border); flex-shrink: 0; }
+    /* Loading / empty states */
+    .inv-loading {
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      padding: 32px 0; color: var(--text-muted); font-size: 13px;
+    }
+    .inv-spinner {
+      width: 28px; height: 28px; border: 3px solid var(--border);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    .inv-empty {
+      text-align: center; padding: 32px 0;
+      font-size: 13px; color: var(--text-muted);
+    }
+    .inv-empty strong { display: block; font-size: 15px; color: var(--text); margin-bottom: 6px; }
+    .inv-count { font-size: 12px; color: var(--text-muted); }
+    /* Generate button */
+    .btn-generate {
+      background: var(--accent); color: #fff; border: none; border-radius: 8px;
+      padding: 9px 22px; font-family: inherit; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: background 0.15s; display: flex; align-items: center; gap: 7px;
+    }
+    .btn-generate:hover { background: var(--accent-hover); }
+    .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-generate .spinner { width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+    .btn-generate.loading .spinner { display: block; }
+    .btn-generate.loading .btn-lbl { display: none; }
+    .btn-secondary {
+      background: var(--bg); color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; font-family: inherit; font-weight: 600; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-secondary:hover { background: #e5e7eb; }
+    /* Card clickable */
+    .card.clickable { cursor: pointer; }
+    .card.clickable:hover { box-shadow: 0 6px 20px rgba(37,99,235,0.12); border-color: #bfdbfe; }
+    @media (max-width: 640px) {
+      .inv-modal { max-height: 92vh; }
+      .inv-po-style { min-width: 60px; }
+    }
   
     /* == SHARED NAV DROPDOWN == */
     nav {
@@ -713,6 +806,40 @@
     </div>
     <div class="grid" id="grid"></div>
 
+    <!-- URBN INVOICE GENERATOR section -->
+    <div id="invoice-section" style="margin-top:28px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <div style="font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.6px;">Invoice Automation</div>
+        <span style="font-size:10px;font-weight:600;background:#eff6ff;color:var(--accent);border:1px solid #bfdbfe;border-radius:20px;padding:2px 9px;">Tradestone</span>
+      </div>
+
+      <div class="card clickable" id="invoice-card" style="border-top:3px solid var(--accent);" onclick="openInvoiceModal()">
+        <div class="card-header">
+          <div>
+            <div class="card-title">URBN INVOICE GENERATOR</div>
+            <div class="card-sheet" id="invoice-drive-label">&#x2192; Google Drive / —</div>
+          </div>
+          <span class="status-badge badge-idle" id="invoice-badge">
+            <span class="dot"></span>
+            <span id="invoice-badge-label">Ready</span>
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="meta-row">
+            <span class="meta-label">Last run</span>
+            <span class="meta-value" id="invoice-last-run">—</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">Duration</span>
+            <span class="meta-value" id="invoice-duration">—</span>
+          </div>
+          <div class="meta-row" style="margin-top:6px;">
+            <span style="font-size:11px;color:var(--accent);font-weight:500;">&#x2192; Click to select POs &amp; generate invoices</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- POWERBI DATABASE card — runs after extractions complete -->
     <div id="powerbi-section" style="margin-top:12px;">
       <div class="card" id="powerbi-card">
@@ -736,6 +863,54 @@
     </div>
   </div>
 
+</div>
+
+<!-- URBN Invoice Generator Modal -->
+<div class="inv-overlay" id="inv-overlay" onclick="handleInvOverlayClick(event)">
+  <div class="inv-modal" id="inv-modal">
+
+    <div class="inv-modal-head">
+      <div>
+        <div class="inv-modal-title">URBN Invoice Generator</div>
+        <div class="inv-modal-sub">Select the POs you want to invoice</div>
+      </div>
+      <button class="inv-modal-close" onclick="closeInvoiceModal()">&#x2715;</button>
+    </div>
+
+    <div class="inv-modal-body" id="inv-modal-body">
+      <!-- Loading -->
+      <div class="inv-loading" id="inv-loading">
+        <div class="inv-spinner"></div>
+        <span>Loading SHIPPED POs…</span>
+      </div>
+      <!-- Empty -->
+      <div class="inv-empty" id="inv-empty" style="display:none;">
+        <strong>All caught up!</strong>
+        No SHIPPED POs with a missing invoice were found.
+      </div>
+      <!-- List -->
+      <div id="inv-list-wrap" style="display:none;">
+        <label class="inv-selall" id="inv-selall" onclick="toggleSelectAll()">
+          <input type="checkbox" id="inv-chk-all" checked />
+          <span class="inv-selall-label">Select all</span>
+          <span class="inv-count" id="inv-total-count" style="margin-left:auto;"></span>
+        </label>
+        <div id="inv-po-list"></div>
+      </div>
+    </div>
+
+    <div class="inv-modal-foot" id="inv-modal-foot" style="display:none;">
+      <span class="inv-count" id="inv-selected-count"></span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-secondary" style="padding:9px 18px;font-size:13px;" onclick="closeInvoiceModal()">Cancel</button>
+        <button class="btn-generate" id="inv-generate-btn" onclick="submitInvoices()">
+          <span class="spinner"></span>
+          <span class="btn-lbl">Generate Invoices</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -994,6 +1169,167 @@ document.head.appendChild(style);
 renderSkeleton();
 fetchStatus();
 startCountdown();
+
+// ── URBN Invoice Generator ───────────────────────────────────────────────────
+
+(function() {
+  const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const el = document.getElementById('invoice-drive-label');
+  if (el) el.textContent = '→ Google Drive / ' + months[new Date().getMonth()];
+})();
+
+function setInvoiceBadge(status, conclusion) {
+  document.getElementById('invoice-badge').className = 'status-badge ' + badgeClass(status, conclusion);
+  document.getElementById('invoice-badge-label').textContent = badgeLabel(status, conclusion);
+}
+
+async function fetchInvoiceStatus() {
+  try {
+    const res  = await fetch('/api/samantha/invoice-status');
+    const data = await res.json();
+    setInvoiceBadge(data.status, data.conclusion);
+    document.getElementById('invoice-last-run').textContent = formatDate(data.updated_at);
+    document.getElementById('invoice-duration').textContent  = formatDuration(data.duration);
+  } catch (_) {}
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+
+let _invPos = [];
+
+function openInvoiceModal() {
+  document.getElementById('inv-overlay').classList.add('open');
+  document.getElementById('inv-loading').style.display  = 'flex';
+  document.getElementById('inv-empty').style.display    = 'none';
+  document.getElementById('inv-list-wrap').style.display = 'none';
+  document.getElementById('inv-modal-foot').style.display = 'none';
+  loadInvoicePreview();
+}
+
+function closeInvoiceModal() {
+  document.getElementById('inv-overlay').classList.remove('open');
+}
+
+function handleInvOverlayClick(e) {
+  if (e.target === document.getElementById('inv-overlay')) closeInvoiceModal();
+}
+
+async function loadInvoicePreview() {
+  try {
+    const res  = await fetch('/api/samantha/invoice-preview');
+    const data = await res.json();
+    _invPos = data;
+
+    document.getElementById('inv-loading').style.display = 'none';
+
+    if (!data.length) {
+      document.getElementById('inv-empty').style.display = 'flex';
+      return;
+    }
+
+    renderInvoiceList(data);
+    document.getElementById('inv-list-wrap').style.display = 'block';
+    document.getElementById('inv-modal-foot').style.display = 'flex';
+    updateSelectedCount();
+  } catch (e) {
+    document.getElementById('inv-loading').style.display = 'none';
+    document.getElementById('inv-empty').style.display = 'flex';
+    document.getElementById('inv-empty').innerHTML = `<strong>Error loading POs</strong>${e.message}`;
+  }
+}
+
+function renderInvoiceList(pos) {
+  const list = document.getElementById('inv-po-list');
+  document.getElementById('inv-total-count').textContent = `${pos.length} PO${pos.length !== 1 ? 's' : ''} pending`;
+
+  list.innerHTML = pos.map(p => `
+    <label class="inv-po-row selected" onclick="toggleRow(this)">
+      <input type="checkbox" class="inv-po-chk" value="${p.poNumber}" checked onclick="event.stopPropagation();updateCheckState(this.closest('label'));updateSelectedCount();" />
+      <span class="inv-po-style">${p.style || '—'}</span>
+      <span class="inv-po-sep"></span>
+      <span class="inv-po-num">PO ${p.poNumber}</span>
+    </label>
+  `).join('');
+}
+
+function toggleRow(label) {
+  const chk = label.querySelector('.inv-po-chk');
+  chk.checked = !chk.checked;
+  updateCheckState(label);
+  updateSelectedCount();
+}
+
+function updateCheckState(label) {
+  const chk = label.querySelector('.inv-po-chk');
+  label.classList.toggle('selected', chk.checked);
+  syncSelectAll();
+}
+
+function syncSelectAll() {
+  const all   = [...document.querySelectorAll('.inv-po-chk')];
+  const chkAll = document.getElementById('inv-chk-all');
+  chkAll.checked       = all.every(c => c.checked);
+  chkAll.indeterminate = !chkAll.checked && all.some(c => c.checked);
+}
+
+function toggleSelectAll() {
+  const chkAll = document.getElementById('inv-chk-all');
+  const newState = chkAll.checked;
+  document.querySelectorAll('.inv-po-chk').forEach(c => {
+    c.checked = newState;
+    updateCheckState(c.closest('label'));
+  });
+  updateSelectedCount();
+}
+
+function updateSelectedCount() {
+  const sel = document.querySelectorAll('.inv-po-chk:checked').length;
+  const tot = document.querySelectorAll('.inv-po-chk').length;
+  document.getElementById('inv-selected-count').textContent = `${sel} of ${tot} selected`;
+  document.getElementById('inv-generate-btn').disabled = sel === 0;
+}
+
+let invoicePollInterval;
+
+async function submitInvoices() {
+  const selected = [...document.querySelectorAll('.inv-po-chk:checked')].map(c => c.value);
+  if (!selected.length) return;
+
+  const btn = document.getElementById('inv-generate-btn');
+  btn.disabled = true;
+  btn.classList.add('loading');
+
+  try {
+    const res  = await fetch('/api/samantha/run-invoices', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pos: selected }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `Server error ${res.status}`);
+
+    closeInvoiceModal();
+    setInvoiceBadge('queued', null);
+    showToast(`Invoice Generator running for ${selected.length} PO${selected.length !== 1 ? 's' : ''} — checking every 10s`);
+
+    clearInterval(invoicePollInterval);
+    invoicePollInterval = setInterval(async () => {
+      await fetchInvoiceStatus();
+      const lbl = document.getElementById('invoice-badge-label').textContent;
+      if (lbl === 'Success' || lbl === 'Failed' || lbl === 'Timed out') {
+        clearInterval(invoicePollInterval);
+        if (lbl === 'Success') showToast('Invoices generated successfully!');
+      }
+    }, 10000);
+  } catch (e) {
+    showToast(`Failed: ${e.message}`, true);
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('loading');
+  }
+}
+
+fetchInvoiceStatus();
 </script>
 <script src="/auth.js"></script>
 </body>

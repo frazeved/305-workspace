@@ -1114,6 +1114,86 @@ app.post('/api/samantha/powerbi-sync', async (req, res) => {
   }
 });
 
+// ─── Samantha: URBN Invoice Generator ────────────────────────────────────────
+
+// Preview: return SHIPPED POs with no URBN INVOICE TOTAL for the modal checklist
+app.get('/api/samantha/invoice-preview', async (req, res) => {
+  if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+    return res.status(500).json({ error: 'Google credentials not configured' });
+  }
+  try {
+    const sa     = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+    const auth   = new google.auth.GoogleAuth({ credentials: sa, scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'] });
+    const sheets = google.sheets({ version: 'v4', auth });
+
+    const r    = await sheets.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: 'Warehouse Now Database' });
+    const rows = r.data.values || [];
+    if (rows.length < 2) return res.json([]);
+
+    const headers = rows[0].map(h => (h || '').trim().toLowerCase());
+    const idx = keys => headers.findIndex(h => keys.some(k => h.includes(k)));
+
+    const poCol       = idx(['po#', 'po number']);
+    const statusCol   = idx(['status']);
+    const styleCol    = idx(['style#', 'style number', 'style']);
+    const trackingCol = idx(['tracking number', 'tracking']);
+    const invTotalCol = idx(['urbn invoice total', 'invoice total']);
+
+    if (poCol < 0 || statusCol < 0) return res.status(500).json({ error: 'Required columns not found' });
+
+    const result = [];
+    for (let i = 1; i < rows.length; i++) {
+      const row      = rows[i];
+      const poNumber = (row[poCol]     || '').trim();
+      const status   = (row[statusCol] || '').trim().toUpperCase();
+      const invTotal = invTotalCol >= 0 ? (row[invTotalCol] || '').trim() : null;
+
+      if (!poNumber) continue;
+      if (status !== 'SHIPPED') continue;
+      if (invTotal !== null && invTotal !== '') continue;
+
+      result.push({
+        poNumber,
+        style:    styleCol    >= 0 ? (row[styleCol]    || '').trim() : '',
+        tracking: trackingCol >= 0 ? (row[trackingCol] || '').trim() : '',
+      });
+    }
+
+    res.json(result);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/samantha/invoice-status', async (req, res) => {
+  try {
+    const r    = await ghFetch(`https://api.github.com/repos/${REPO}/actions/workflows/urbn-invoice-generator.yml/runs?per_page=1`);
+    const data = await r.json();
+    const run  = data.workflow_runs?.[0] || null;
+    const duration = run && run.status === 'completed' && run.run_started_at && run.updated_at
+      ? Math.round((new Date(run.updated_at) - new Date(run.run_started_at)) / 1000) : null;
+    res.json({
+      status:     run?.status     || 'unknown',
+      conclusion: run?.conclusion || null,
+      updated_at: run?.updated_at || null,
+      started_at: run?.run_started_at || null,
+      duration,
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/samantha/run-invoices', async (req, res) => {
+  try {
+    const { pos } = req.body || {};
+    const inputs  = {};
+    if (Array.isArray(pos) && pos.length) inputs.po_numbers = pos.join(',');
+
+    const r = await ghFetch(`https://api.github.com/repos/${REPO}/actions/workflows/urbn-invoice-generator.yml/dispatches`, {
+      method: 'POST', body: JSON.stringify({ ref: 'main', inputs }),
+    });
+    if (r.status !== 204) { const b = await r.text(); return res.status(500).json({ error: `GitHub returned ${r.status}: ${b}` }); }
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // ─── Gabriel: MAP DATA SYNC ───────────────────────────────────────────────────
 app.post('/api/gabriel/map-sync', async (req, res) => {
   if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
