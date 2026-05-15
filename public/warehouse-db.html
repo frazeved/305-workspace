@@ -368,18 +368,36 @@ function parseCSV(text) {
 }
 
 function filterCards() {
+  const grid  = document.getElementById('grid');
+  const cards = Array.from(grid.querySelectorAll('.card'));
+
   let visible = 0;
-  document.querySelectorAll('.card').forEach(c => {
+  cards.forEach(c => {
     const show = activeFilter === 'all'
       || c.dataset.cls === activeFilter
       || (activeFilter === 'shipped-last' && c.dataset.cls === 'sh' && !c.dataset.invDate);
     c.classList.toggle('hidden', !show);
     if (show) visible++;
   });
+
+  // Sort all SHIPPED cards by invoice date descending (latest first, empty last)
+  if (activeFilter === 'sh' || activeFilter === 'shipped-last') {
+    const shown = cards.filter(c => !c.classList.contains('hidden'));
+    shown.sort((a, b) => {
+      const da = a.dataset.invDate ? new Date(a.dataset.invDate) : null;
+      const db = b.dataset.invDate ? new Date(b.dataset.invDate) : null;
+      if (!da && !db) return 0;
+      if (!da) return 1;
+      if (!db) return -1;
+      return db - da;
+    });
+    shown.forEach(c => grid.appendChild(c));
+  }
+
   document.querySelectorAll('.pill').forEach(p => {
     p.classList.toggle('active', p.dataset.f === activeFilter);
   });
-  const total = document.querySelectorAll('.card').length;
+  const total = cards.length;
   document.getElementById('status-text').textContent = `${visible} of ${total} POs`;
 }
 
@@ -397,9 +415,10 @@ function build(rows) {
     units:  col(H,'units','pcs','pieces','unit qty','qty'),
     ws:     col(H,'wholesale','wsp','total value','amount'),
     awb:    col(H,'awb','tracking','airway'),
-    inv:     col(H,'urbn invoice total','invoice total','inv total'),
-    invDate: col(H,'urbn invoice date'),
-    al:     col(H,'anthro label','anthro lbl'),
+    inv:          col(H,'urbn invoice total','invoice total','inv total'),
+    invDate:      col(H,'urbn invoice date'),
+    deliveryDate: col(H,'delivery date','delivered date','fedex delivery date','actual delivery'),
+    al:           col(H,'anthro label','anthro lbl'),
     pl:     col(H,'packing list','pack list'),
     fx:     col(H,'fedex label','fedex lbl','fed ex label'),
   };
@@ -421,8 +440,9 @@ function build(rows) {
     const units  = get(r, C.units);
     const ws     = get(r, C.ws);
     const awb    = get(r, C.awb);
-    const inv     = get(r, C.inv);
-    const invDate = get(r, C.invDate);
+    const inv          = get(r, C.inv);
+    const invDate      = get(r, C.invDate);
+    const deliveryDate = get(r, C.deliveryDate);
     if (cls === 'sh' && !invDate) counts.sl++;
     const al     = get(r, C.al);
     const pl     = get(r, C.pl);
@@ -467,15 +487,36 @@ function build(rows) {
         </div>
       </div>`;
     } else if (cls === 'sh') {
-      vis = `<div class="vis vis-sh">
-        <div class="vis-sh-top"><span>Shipped</span><span>${pct}%</span></div>
+      const invD   = parseDate(invDate);
+      const ndcD   = parseDate(cancel);
+      const delivD = parseDate(deliveryDate);
+
+      let shLabel, shBg, shTextColor, shFill, shDateColor, shPct2;
+
+      if (delivD && ndcD && delivD <= ndcD) {
+        shLabel = 'DELIVERED ON TIME'; shBg = 'var(--green-lt)';
+        shTextColor = '#14532d'; shFill = 'var(--green)'; shDateColor = '#166534'; shPct2 = 100;
+      } else if (invD && arrDate && invD < arrDate) {
+        shLabel = 'SHIPPED EARLY'; shBg = 'var(--green-lt)';
+        shTextColor = '#14532d'; shFill = 'var(--green)'; shDateColor = '#166534'; shPct2 = 100;
+      } else if (invD && arrDate && invD >= arrDate) {
+        shLabel = 'SHIPPED LATE'; shBg = 'var(--red-lt)';
+        shTextColor = '#991b1b'; shFill = 'var(--red)'; shDateColor = '#b91c1c'; shPct2 = pct;
+      } else {
+        shLabel = 'Shipped'; shBg = 'var(--purple-lt)';
+        shTextColor = '#5b21b6'; shFill = 'var(--purple)'; shDateColor = '#6d28d9'; shPct2 = pct;
+      }
+
+      const shPlaneLeft = Math.max(0, Math.min(88, shPct2 * 0.88));
+      vis = `<div class="vis" style="background:${shBg}">
+        <div class="vis-sh-top" style="color:${shTextColor}"><span>${shLabel}</span><span>${shPct2}%</span></div>
         <div class="progress-track-sh">
-          <div class="progress-fill-sh" style="width:${pct}%"></div>
-          <div class="plane" style="left:${planeLeft}%"><svg width="14" height="14" viewBox="0 0 24 24" fill="#7c3aed" stroke="none"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></div>
+          <div class="progress-fill-sh" style="width:${shPct2}%;background:${shFill}"></div>
+          <div class="plane" style="left:${shPlaneLeft}%"><svg width="14" height="14" viewBox="0 0 24 24" fill="${shFill}" stroke="none"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></div>
         </div>
-        <div class="vis-sh-dates">
+        <div class="vis-sh-dates" style="color:${shDateColor}">
           <span>Flight: ${fmt(exfac)}</span>
-          <span class="${arrRed?'red':''}">Arrival: ${arrStr}</span>
+          <span>Arrival: ${arrStr}</span>
         </div>
       </div>`;
     } else if (cls === 'prod') {
@@ -490,7 +531,7 @@ function build(rows) {
       </div>`;
     }
 
-    return `<div class="card ${cls}" data-cls="${cls}" data-inv-date="${invDate}">
+    return `<div class="card ${cls}" data-cls="${cls}" data-inv-date="${invDate}" data-delivery-date="${deliveryDate}">
       <div class="card-body">
         <div class="card-top">
           <div>
