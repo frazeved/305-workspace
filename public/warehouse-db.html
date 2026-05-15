@@ -350,6 +350,14 @@ function classify(v) {
 }
 
 function parseDate(s) { const d = new Date(s); return isNaN(d) ? null : d; }
+function parseFedExStatusDate(str) {
+  if (!str) return null;
+  const after = str.split('·')[1]?.trim();
+  if (!after) return null;
+  const fixed = after.replace(/,\s*(\d{2})\s*,/, (_, y) => `, 20${y},`);
+  const d = new Date(fixed);
+  return isNaN(d) ? null : d;
+}
 function fmt(s) {
   const d = parseDate(s);
   return d ? d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}) : (s||'â€"');
@@ -430,7 +438,7 @@ function build(rows) {
     awb:    col(H,'awb','tracking','airway'),
     inv:          col(H,'urbn invoice total','invoice total','inv total'),
     invDate:      col(H,'urbn invoice date'),
-    deliveryDate: col(H,'delivery date','delivered date','fedex delivery date','actual delivery'),
+    deliveryDate: col(H,'delivery date','delivered date','fedex delivery date','actual delivery','delivery status'),
     al:           col(H,'anthro label','anthro lbl'),
     pl:     col(H,'packing list','pack list'),
     fx:     col(H,'fedex label','fedex lbl','fed ex label'),
@@ -502,17 +510,18 @@ function build(rows) {
     } else if (cls === 'sh') {
       const invD   = parseDate(invDate);
       const ndcD   = parseDate(cancel);
-      const delivD = parseDate(deliveryDate);
+      const delivD = parseFedExStatusDate(deliveryDate);
+      const refDate = arrDate || ndcD; // arrival date if available, else NDC deadline
 
       let shLabel, shBg, shTextColor, shFill, shDateColor, shPct2;
 
       if (delivD && ndcD && delivD <= ndcD) {
         shLabel = 'DELIVERED ON TIME'; shBg = 'var(--green-lt)';
         shTextColor = '#14532d'; shFill = 'var(--green)'; shDateColor = '#166534'; shPct2 = 100;
-      } else if (invD && arrDate && invD < arrDate) {
+      } else if (invD && refDate && invD < refDate) {
         shLabel = 'SHIPPED EARLY'; shBg = 'var(--green-lt)';
         shTextColor = '#14532d'; shFill = 'var(--green)'; shDateColor = '#166534'; shPct2 = 100;
-      } else if (invD && arrDate && invD >= arrDate) {
+      } else if (invD && refDate && invD >= refDate) {
         shLabel = 'SHIPPED LATE'; shBg = 'var(--red-lt)';
         shTextColor = '#991b1b'; shFill = 'var(--red)'; shDateColor = '#b91c1c'; shPct2 = pct;
       } else {
