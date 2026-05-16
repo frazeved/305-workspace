@@ -118,7 +118,7 @@ app.post('/api/change-password', async (req, res) => {
   const user   = AUTH_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
   if (!user) return res.status(401).json({ error: 'User not found' });
 
-  const stored = passwordMap[email.toLowerCase()] || user.password;
+  const stored = passwordMap[email.toLowerCase()] || DEFAULT_PASSWORD;
   if (stored !== currentPassword) return res.status(401).json({ error: 'Current password is incorrect' });
 
   try {
