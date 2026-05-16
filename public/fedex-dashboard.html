@@ -444,21 +444,19 @@ async function loadData() {
     const H = raw[0];
     const data = raw.slice(1);
 
-    // Columns A-E are fixed positions. Tracking/Delivery are far right — find by name.
+    // Columns A-E are fixed positions. Tracking/Delivery/URBN Invoice Date are far right — find by name.
     const C = {
-      style:    0,
-      po:       1,
-      status:   2,
-      shipDate: 3,
-      cancel:   4,
-      tracking: colIdx(H, 'tracking number', 'tracking#', 'tracking', 'awb'),
-      delivery: colIdx(H, 'delivery status', 'delivery'),
+      style:       0,
+      po:          1,
+      status:      2,
+      shipDate:    3,
+      cancel:      4,
+      tracking:    colIdx(H, 'tracking number', 'tracking#', 'tracking', 'awb'),
+      delivery:    colIdx(H, 'delivery status', 'delivery'),
+      urbnInvoice: colIdx(H, 'urbn invoice date', 'invoice date'),
     };
 
     const get = (r,i) => i>=0 ? (r[i]||'').trim() : '';
-
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 30);
 
     // Pass 1: build style carry-forward across ALL rows (before any filtering)
     let lastStyle = '';
@@ -468,16 +466,12 @@ async function loadData() {
       return lastStyle;
     });
 
-    // Pass 2: filter to SHIPPED + last 30 days, attach the pre-computed style
+    // Pass 2: filter — status=shipped AND URBN INVOICE DATE empty
     rows = data
       .map((r, i) => {
         const statusRaw = get(r, 2);
         if (!statusRaw.toLowerCase().includes('shipped')) return null;
-        const shipDate = get(r, 3);
-        if (shipDate) {
-          const d = new Date(shipDate);
-          if (!isNaN(d) && d < cutoff) return null;
-        }
+        if (get(r, C.urbnInvoice)) return null; // skip rows that already have an invoice date
         const style    = styleByRow[i];
         const po       = get(r, 1);
         const cancel   = get(r, 4);
