@@ -456,6 +456,7 @@ function build(rows) {
     inv:          col(H,'urbn invoice total','invoice total','inv total'),
     invDate:      col(H,'urbn invoice date','invoice date','inv date','urbn inv date','invoicedate'),
     deliveryDate: col(H,'delivery date','delivered date','fedex delivery date','actual delivery','delivery status'),
+    invLink:      col(H,'invoice link'),
     al:           col(H,'anthro label','anthro lbl'),
     pl:     col(H,'packing list','pack list'),
     fx:     col(H,'fedex label','fedex lbl','fed ex label'),
@@ -484,6 +485,7 @@ function build(rows) {
     const awb    = get(r, C.awb);
     const inv          = get(r, C.inv);
     const invDate      = get(r, C.invDate);
+    const invLink      = get(r, C.invLink);
     const deliveryDate = get(r, C.deliveryDate);
     const invDateParsed  = parseDate(invDate);
     const invDateISO     = invDateParsed ? invDateParsed.toISOString().split('T')[0] : '';
@@ -603,7 +605,7 @@ function build(rows) {
         <div class="bottom-row">
           <div class="label-row">
             ${invDate
-              ? `<div class="lbl done">INV</div>`
+              ? `<a class="lbl done" ${invLink ? `href="${esc(invLink)}" target="_blank" rel="noopener" title="Open invoice PDF"` : ''} style="${invLink ? 'cursor:pointer;text-decoration:none' : ''}">INV</a>`
               : `<button class="lbl pending" onclick="runInvoice(this,'${esc(po)}')" title="Generate invoice + PDF for this PO">INV</button>`
             }
             <div class="lbl ${al?'done':'pending'}">AL</div>
