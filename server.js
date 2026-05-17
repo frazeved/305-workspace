@@ -130,7 +130,13 @@ app.post('/api/change-password', async (req, res) => {
   }
 });
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    }
+  },
+}));
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
