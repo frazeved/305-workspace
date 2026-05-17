@@ -1332,7 +1332,7 @@ app.get('/api/jhonny/po-list', async (req, res) => {
       fxLink:     idx('fedex label link', 'fedex link'),
       alPrinted:  idx('al printed'),
       plPrinted:  idx('pl printed'),
-      fxPrinted:  idx('fedex printed'),
+      fxPrinted:  idx('fedeex printed', 'fedex printed'),
     };
 
     const get = (row, i) => i >= 0 ? (row[i] || '').trim() : '';
@@ -1376,7 +1376,7 @@ app.get('/api/jhonny/po-list', async (req, res) => {
 
 app.post('/api/jhonny/mark-printed', async (req, res) => {
   const { type, pos } = req.body || {};
-  const colKeys = { 'al-print': ['al printed'], 'pl-print': ['pl printed'], 'fedex-print': ['fedex printed'] };
+  const colKeys = { 'al-print': ['al printed'], 'pl-print': ['pl printed'], 'fedex-print': ['fedeex printed', 'fedex printed'] };
   if (!colKeys[type] || !Array.isArray(pos) || !pos.length)
     return res.status(400).json({ error: 'type and pos required' });
 
