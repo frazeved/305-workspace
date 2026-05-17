@@ -608,9 +608,9 @@ function build(rows) {
               ? `<a class="lbl done" ${invLink ? `href="${esc(invLink)}" target="_blank" rel="noopener" title="Open invoice PDF"` : ''} style="${invLink ? 'cursor:pointer;text-decoration:none' : ''}">INV</a>`
               : `<button class="lbl pending" onclick="runInvoice(this,'${esc(po)}')" title="Generate invoice + PDF for this PO">INV</button>`
             }
-            <div class="lbl ${al?'done':'pending'}">AL</div>
-            <div class="lbl ${pl?'done':'pending'}">PL</div>
-            <div class="lbl ${fx?'done':'pending'}">FDEX</div>
+            ${al ? `<a class="lbl done" href="${esc(al)}" target="_blank" rel="noopener" title="Open Anthro Label" style="cursor:pointer;text-decoration:none">AL</a>` : `<div class="lbl pending">AL</div>`}
+            ${pl ? `<a class="lbl done" href="${esc(pl)}" target="_blank" rel="noopener" title="Open Packing List" style="cursor:pointer;text-decoration:none">PL</a>` : `<div class="lbl pending">PL</div>`}
+            ${fx ? `<a class="lbl done" href="${esc(fx)}" target="_blank" rel="noopener" title="Open FedEx Label" style="cursor:pointer;text-decoration:none">FDEX</a>` : `<div class="lbl pending">FDEX</div>`}
           </div>
           ${awb && cls !== 'sh' ? `<div class="awb-row">
             <a class="awb-link" id="awb-${ri}" href="https://www.google.com/search?q=${encodeURIComponent(awb)}+airway+bill+cargo+tracking" target="_blank" rel="noopener">${esc(awb)}</a>
