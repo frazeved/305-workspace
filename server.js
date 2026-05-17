@@ -1274,15 +1274,13 @@ app.post('/api/samantha/run-invoice-for-po', async (req, res) => {
     const { poNumber } = req.body || {};
     if (!poNumber) return res.status(400).json({ error: 'poNumber required' });
     const inputs = { po_numbers: String(poNumber) };
-    const [r1, r2] = await Promise.all([
-      ghFetch(`https://api.github.com/repos/${REPO}/actions/workflows/urbn-invoice-generator.yml/dispatches`, {
-        method: 'POST', body: JSON.stringify({ ref: 'main', inputs }),
-      }),
-      ghFetch(`https://api.github.com/repos/${REPO}/actions/workflows/invoice-pdf.yml/dispatches`, {
-        method: 'POST', body: JSON.stringify({ ref: 'main', inputs }),
-      }),
-    ]);
+    const r1 = await ghFetch(`https://api.github.com/repos/${REPO}/actions/workflows/urbn-invoice-generator.yml/dispatches`, {
+      method: 'POST', body: JSON.stringify({ ref: 'main', inputs }),
+    });
     if (r1.status !== 204) { const b = await r1.text(); return res.status(500).json({ error: `invoice workflow: ${b}` }); }
+    const r2 = await ghFetch(`https://api.github.com/repos/${REPO}/actions/workflows/invoice-pdf.yml/dispatches`, {
+      method: 'POST', body: JSON.stringify({ ref: 'main', inputs }),
+    });
     if (r2.status !== 204) { const b = await r2.text(); return res.status(500).json({ error: `pdf workflow: ${b}` }); }
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
