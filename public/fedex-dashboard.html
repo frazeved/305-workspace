@@ -376,8 +376,8 @@ function renderRows(filter) {
   if (!visible.length) {
     document.getElementById('tbody').innerHTML = `<tr class="msg-row"><td colspan="7">${q ? 'No results for "'+esc(q)+'".' : 'No shipped items found.'}</td></tr>`;
     document.getElementById('status-text').textContent = q
-      ? `${visible.length} of ${rows.length} shipments · Status: Shipped`
-      : `${rows.length} shipment${rows.length!==1?'s':''} · Status: Shipped`;
+      ? `${visible.length} of ${rows.length} shipments · Active Shipments`
+      : `${rows.length} shipment${rows.length!==1?'s':''} · Active Shipments`;
     return;
   }
 
@@ -414,8 +414,8 @@ function renderRows(filter) {
   }).join('');
 
   document.getElementById('status-text').textContent = q
-    ? `${visible.length} of ${rows.length} shipments · Status: Shipped`
-    : `${rows.length} shipment${rows.length!==1?'s':''} · Status: Shipped`;
+    ? `${visible.length} of ${rows.length} shipments · Active Shipments`
+    : `${rows.length} shipment${rows.length!==1?'s':''} · Active Shipments`;
 }
 
 function sortBy(col) {
@@ -466,16 +466,21 @@ async function loadData() {
       return lastStyle;
     });
 
-    // Pass 2: filter — status=shipped AND URBN INVOICE DATE empty
+    // Pass 2: filter — shipped OR in-transit/warehouse/delayed POs with a tracking number
     rows = data
       .map((r, i) => {
         const statusRaw = get(r, 2);
-        if (!statusRaw.toLowerCase().includes('shipped')) return null;
-        if (get(r, C.urbnInvoice)) return null; // skip rows that already have an invoice date
+        const s = statusRaw.toLowerCase();
+        const isActive = s.includes('shipped') || s.includes('transit') || s.includes('route') ||
+                         s.includes('warehouse') || s.includes('received') || s.includes('arrived') ||
+                         s.includes('delay') || s.includes('hold');
+        if (!isActive) return null;
+        const tracking = get(r, C.tracking);
+        if (!tracking) return null; // only show rows we can actually track
         const style    = styleByRow[i];
         const po       = get(r, 1);
+        const shipDate = get(r, 3);
         const cancel   = get(r, 4);
-        const tracking = get(r, C.tracking);
         const delivery = get(r, C.delivery);
         const cls      = classifyDelivery(delivery);
         return [style, po, statusRaw, shipDate, cancel, tracking, delivery, cls];
