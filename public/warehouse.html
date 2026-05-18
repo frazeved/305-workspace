@@ -404,9 +404,9 @@ const GEN_CONFIG = {
   'invoice':      { title: 'Invoice Generator',      subtitle: 'SHIPPED POs with no URBN Invoice Date',                          btnLabel: 'Generate' },
   'packing-list': { title: 'Packing List Generator', subtitle: 'In Transit / Warehouse / Delayed POs with no Packing List',      btnLabel: 'Generate' },
   'fedex':        { title: 'FedEx Label Generator',  subtitle: 'In Transit / Warehouse / Delayed POs with no FedEx Label',       btnLabel: 'Generate' },
-  'al-print':     { title: 'Anthro Label Print',     subtitle: 'POs with Anthro Label ready to print (AL PRINTED empty)',        btnLabel: 'Open for Print' },
-  'pl-print':     { title: 'Packing List Print',     subtitle: 'POs with Packing List ready to print (PL PRINTED empty)',        btnLabel: 'Open for Print' },
-  'fedex-print':  { title: 'FedEx Label Print',      subtitle: 'POs with FedEx Label ready to print (FEDEX PRINTED empty)',      btnLabel: 'Open for Print' },
+  'al-print':     { title: 'Anthro Label Print',     subtitle: 'POs with Anthro Label ready to print (AL PRINTED empty)',        btnLabel: 'Send to Printer' },
+  'pl-print':     { title: 'Packing List Print',     subtitle: 'POs with Packing List ready to print (PL PRINTED empty)',        btnLabel: 'Send to Printer' },
+  'fedex-print':  { title: 'FedEx Label Print',      subtitle: 'POs with FedEx Label ready to print (FEDEX PRINTED empty)',      btnLabel: 'Send to Printer' },
 };
 
 let _genType = null;
@@ -507,16 +507,18 @@ async function runGenerator() {
   try {
     // Print types — open PDFs + mark as printed
     if (_genType.endsWith('-print')) {
-      btn.textContent = 'Opening…';
+      btn.textContent = 'Printing…';
       const selectedRows = [...document.querySelectorAll('.gen-row-cb:checked')]
         .map(cb => _genRows[+cb.dataset.i]);
-      selectedRows.forEach(row => { if (row.link) window.open(row.link, '_blank'); });
+      selectedRows.forEach(row => {
+        if (row.link) window.open('/api/print-doc?link=' + encodeURIComponent(row.link), '_blank');
+      });
       await fetch('/api/jhonny/mark-printed', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: _genType, pos }),
       });
-      btn.textContent = '✓ Opened!';
+      btn.textContent = '✓ Sent!';
       setTimeout(() => closeGenerator(), 1500);
       return;
     }

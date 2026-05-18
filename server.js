@@ -1419,6 +1419,43 @@ app.post('/api/jhonny/mark-printed', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ─── PDF proxy + auto-print ───────────────────────────────────────────────────
+// Fetches a Google Drive PDF via service account and streams it same-origin
+app.get('/api/pdf-proxy', async (req, res) => {
+  const link = req.query.link || '';
+  const match = link.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (!match) return res.status(400).send('Invalid Drive link');
+  const fileId = match[1];
+  try {
+    const sa    = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+    const auth  = new google.auth.GoogleAuth({ credentials: sa, scopes: ['https://www.googleapis.com/auth/drive.readonly'] });
+    const drive = google.drive({ version: 'v3', auth });
+    const file  = await drive.files.get({ fileId, alt: 'media' }, { responseType: 'stream' });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline');
+    file.data.pipe(res);
+  } catch (e) { res.status(500).send('Could not fetch PDF: ' + e.message); }
+});
+
+// Returns an HTML page that embeds the PDF and auto-triggers window.print()
+app.get('/api/print-doc', (req, res) => {
+  const link = req.query.link || '';
+  if (!link) return res.status(400).send('link required');
+  const pdfSrc = `/api/pdf-proxy?link=${encodeURIComponent(link)}`;
+  res.setHeader('Content-Type', 'text/html');
+  res.send(`<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<style>*{margin:0;padding:0;}html,body{width:100%;height:100vh;overflow:hidden;}
+embed{width:100%;height:100%;display:block;}</style>
+</head><body>
+<embed id="pdf" src="${pdfSrc}" type="application/pdf" />
+<script>
+  // Give the PDF viewer ~1.5s to render, then trigger print dialog
+  setTimeout(function(){ window.print(); }, 1500);
+</script>
+</body></html>`);
+});
+
 // ─── Gabriel: MAP DATA SYNC ───────────────────────────────────────────────────
 app.post('/api/gabriel/map-sync', async (req, res) => {
   if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
