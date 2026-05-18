@@ -507,19 +507,33 @@ async function runGenerator() {
   try {
     // Print types — open PDFs + mark as printed
     if (_genType.endsWith('-print')) {
-      btn.textContent = 'Printing…';
+      btn.textContent = 'Sending…';
       const selectedRows = [...document.querySelectorAll('.gen-row-cb:checked')]
         .map(cb => _genRows[+cb.dataset.i]);
-      selectedRows.forEach(row => {
-        if (row.link) window.open('/api/print-doc?link=' + encodeURIComponent(row.link), '_blank');
-      });
+
+      // Queue each selected document for the local print agent
+      let queued = 0;
+      for (const row of selectedRows) {
+        if (!row.link) continue;
+        const r = await fetch('/api/print-queue', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ link: row.link, type: _genType, po: row.po }),
+        });
+        if (r.ok) queued++;
+      }
+
+      // Mark as printed in sheet
       await fetch('/api/jhonny/mark-printed', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: _genType, pos }),
       });
-      btn.textContent = '✓ Sent!';
-      setTimeout(() => closeGenerator(), 1500);
+
+      btn.textContent = queued
+        ? `✓ ${queued} job${queued > 1 ? 's' : ''} sent to printer`
+        : '✓ Queued';
+      setTimeout(() => closeGenerator(), 2000);
       return;
     }
 

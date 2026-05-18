@@ -1419,6 +1419,30 @@ app.post('/api/jhonny/mark-printed', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ─── Print queue (local agent polls this) ────────────────────────────────────
+const printQueue = []; // in-memory; jobs are short-lived
+
+app.post('/api/print-queue', (req, res) => {
+  const { link, type, po } = req.body || {};
+  if (!link || !type) return res.status(400).json({ error: 'link and type required' });
+  const job = { id: Date.now() + '_' + Math.random().toString(36).slice(2), link, type, po: po || '', createdAt: Date.now() };
+  printQueue.push(job);
+  res.json({ ok: true, jobId: job.id });
+});
+
+app.get('/api/print-queue/pending', (req, res) => {
+  // Expire jobs older than 5 minutes so queue doesn't grow forever
+  const now = Date.now();
+  while (printQueue.length && now - printQueue[0].createdAt > 300000) printQueue.shift();
+  res.json(printQueue);
+});
+
+app.delete('/api/print-queue/:id', (req, res) => {
+  const i = printQueue.findIndex(j => j.id === req.params.id);
+  if (i >= 0) printQueue.splice(i, 1);
+  res.json({ ok: true });
+});
+
 // ─── PDF proxy + auto-print ───────────────────────────────────────────────────
 // Fetches a Google Drive PDF via service account and streams it same-origin
 app.get('/api/pdf-proxy', async (req, res) => {
